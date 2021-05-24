@@ -22,8 +22,12 @@ function buildPrefsWidget() {
     ),
   });
 
+  // https://gjs-docs.gnome.org/gtk40/gtk.widget#index-properties
   let prefsWidget = new Gtk.Grid({
-    margin: 24,
+    margin_top: 24,
+    margin_bottom: 24,
+    margin_start: 24,
+    margin_end: 24,
     column_spacing: 24,
     row_spacing: 12,
     visible: true,
@@ -133,6 +137,7 @@ function buildPrefsWidget() {
   prefsWidget.attach(inputShowStatusbarIcon, 1, 4, 1, 1);
   prefsWidget.attach(labelShowStatusbarIcon, 0, 4, 1, 1);
 
-  prefsWidget.show_all();
+  // https://gjs-docs.gnome.org/gtk40/gtk.widget#method-show
+  prefsWidget.show();
   return prefsWidget;
 }
