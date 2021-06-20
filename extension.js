@@ -1,12 +1,11 @@
 "use strict";
-const { Gio, St, Shell, Clutter, GObject } = imports.gi;
+const { Gio, St, Clutter, GObject } = imports.gi;
 const Main = imports.ui.main;
 const Keyboard = imports.ui.keyboard;
-const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
-const Layout = imports.ui.layout;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
+const InputSourceManager = imports.ui.status.keyboard;
 
 const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
 let backup_lastDeviceIsTouchScreen;
@@ -15,6 +14,8 @@ let backup_DefaultKeysForRow;
 let backup_keyboardControllerConstructor;
 let backup_keyvalPress;
 let backup_keyvalRelease;
+let backup_commitString;
+let backup_loadDefaultKeys;
 let _indicator;
 
 let settings = ExtensionUtils.getSettings(
@@ -80,115 +81,127 @@ function override_relayout() {
   }
 }
 
+function override_keyvalPress(keyval) {
+  // This allows manually releasing a latched ctrl/super/alt keys by tapping on them again
+  if (keyval == Clutter.KEY_Control_L) {
+    this._controlActive = !this._controlActive;
+
+    if (this._controlActive) {
+      this._virtualDevice.notify_keyval(
+          Clutter.get_current_event_time(),
+          Clutter.KEY_Control_L,
+          Clutter.KeyState.PRESSED
+      );
+      Main.layoutManager.keyboardBox.add_style_class_name("control-key-latched");
+    } else {
+      this._virtualDevice.notify_keyval(
+          Clutter.get_current_event_time(),
+          Clutter.KEY_Control_L,
+          Clutter.KeyState.RELEASED
+      );
+      Main.layoutManager.keyboardBox.remove_style_class_name("control-key-latched");
+    }
+
+    return;
+  }
+
+  if (keyval == Clutter.KEY_Super_L) {
+    this._superActive = !this._superActive;
+
+    if (this._superActive) {
+      this._virtualDevice.notify_keyval(
+          Clutter.get_current_event_time(),
+          Clutter.KEY_Super_L,
+          Clutter.KeyState.PRESSED
+      );
+      Main.layoutManager.keyboardBox.add_style_class_name("super-key-latched");
+    } else {
+      this._virtualDevice.notify_keyval(
+          Clutter.get_current_event_time(),
+          Clutter.KEY_Super_L,
+          Clutter.KeyState.RELEASED
+      );
+      Main.layoutManager.keyboardBox.remove_style_class_name("super-key-latched");
+    }
+
+    return;
+  }
+
+  if (keyval == Clutter.KEY_Alt_L) {
+    this._altActive = !this._altActive;
+
+    if (this._altActive) {
+      this._virtualDevice.notify_keyval(
+          Clutter.get_current_event_time(),
+          Clutter.KEY_Alt_L,
+          Clutter.KeyState.PRESSED
+      );
+      Main.layoutManager.keyboardBox.add_style_class_name("alt-key-latched");
+    } else {
+      this._virtualDevice.notify_keyval(
+          Clutter.get_current_event_time(),
+          Clutter.KEY_Alt_L,
+          Clutter.KeyState.RELEASED
+      );
+      Main.layoutManager.keyboardBox.remove_style_class_name("alt-key-latched");
+    }
+
+    return;
+  }
+
+  // Not a ctrl/super/alt key, continue down original execution path
+  this._virtualDevice.notify_keyval(
+      Clutter.get_current_event_time(),
+      keyval,
+      Clutter.KeyState.PRESSED
+  );
+}
+
 function override_keyvalRelease(keyval) {
+  // By default each key is released immediately after being pressed.
+  // Don't release ctrl/alt/super keys to allow them to be latched
+  // and used in "ctrl/alt/super + key" combinations
   if (
-    keyval == Clutter.KEY_Control_L ||
-    keyval == Clutter.KEY_Alt_L ||
-    keyval == Clutter.KEY_Super_L
+      keyval == Clutter.KEY_Control_L
+      || keyval == Clutter.KEY_Alt_L
+      || keyval == Clutter.KEY_Super_L
   ) {
     return;
   }
 
   this._virtualDevice.notify_keyval(
-    Clutter.get_current_event_time(),
-    keyval,
-    Clutter.KeyState.RELEASED
+      Clutter.get_current_event_time(),
+      keyval,
+      Clutter.KeyState.RELEASED
   );
 
   if (this._controlActive) {
     this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Control_L,
-      Clutter.KeyState.RELEASED
+        Clutter.get_current_event_time(),
+        Clutter.KEY_Control_L,
+        Clutter.KeyState.RELEASED
     );
     this._controlActive = false;
-    Main.layoutManager.keyboardBox.remove_style_class_name(
-      "control-key-latched"
-    );
+    Main.layoutManager.keyboardBox.remove_style_class_name("control-key-latched");
   }
   if (this._superActive) {
     this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Super_L,
-      Clutter.KeyState.RELEASED
+        Clutter.get_current_event_time(),
+        Clutter.KEY_Super_L,
+        Clutter.KeyState.RELEASED
     );
     this._superActive = false;
     Main.layoutManager.keyboardBox.remove_style_class_name("super-key-latched");
   }
   if (this._altActive) {
     this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Alt_L,
-      Clutter.KeyState.RELEASED
+        Clutter.get_current_event_time(),
+        Clutter.KEY_Alt_L,
+        Clutter.KeyState.RELEASED
     );
     this._altActive = false;
     Main.layoutManager.keyboardBox.remove_style_class_name("alt-key-latched");
   }
-}
-
-function override_keyvalPress(keyval) {
-  if (keyval == Clutter.KEY_Control_L) {
-    this._controlActive = !this._controlActive; // This allows to revert an accidental tap on Ctrl by tapping on it again
-  }
-  if (keyval == Clutter.KEY_Super_L) {
-    this._superActive = !this._superActive;
-  }
-  if (keyval == Clutter.KEY_Alt_L) {
-    this._altActive = !this._altActive;
-  }
-
-  if (this._controlActive) {
-    this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Control_L,
-      Clutter.KeyState.PRESSED
-    );
-    Main.layoutManager.keyboardBox.add_style_class_name("control-key-latched");
-  } else {
-    this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Control_L,
-      Clutter.KeyState.RELEASED
-    );
-    Main.layoutManager.keyboardBox.remove_style_class_name(
-      "control-key-latched"
-    );
-  }
-  if (this._superActive) {
-    this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Super_L,
-      Clutter.KeyState.PRESSED
-    );
-    Main.layoutManager.keyboardBox.add_style_class_name("super-key-latched");
-  } else {
-    this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Super_L,
-      Clutter.KeyState.RELEASED
-    );
-    Main.layoutManager.keyboardBox.remove_style_class_name("super-key-latched");
-  }
-  if (this._altActive) {
-    this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Alt_L,
-      Clutter.KeyState.PRESSED
-    );
-    Main.layoutManager.keyboardBox.add_style_class_name("alt-key-latched");
-  } else {
-    this._virtualDevice.notify_keyval(
-      Clutter.get_current_event_time(),
-      Clutter.KEY_Alt_L,
-      Clutter.KeyState.RELEASED
-    );
-    Main.layoutManager.keyboardBox.remove_style_class_name("alt-key-latched");
-  }
-  this._virtualDevice.notify_keyval(
-    Clutter.get_current_event_time(),
-    keyval,
-    Clutter.KeyState.PRESSED
-  );
 }
 
 function override_getDefaultKeysForRow(row, numRows, level) {
@@ -497,6 +510,105 @@ function override_keyboardControllerConstructor() {
     this.emit("panel-state", state);
   });
 }
+
+function override_commitString(string, fromKey) {
+  // Prevents alpha-numeric key presses from bypassing override_keyvalPress()
+  // Fixes "ctrl/alt/super + key" combinations not working
+  return false;
+}
+
+// Bulk of this method remains unchanged, except for extraButton.connect('released') event listener.
+// Overriding it to ensure latched ctrl/alt/super keys are released before keyboard is hidden
+function override_loadDefaultKeys(keys, layout, numLevels, numKeys) {
+  let extraButton;
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i];
+    let keyval = key.keyval;
+    let switchToLevel = key.level;
+    let action = key.action;
+    let icon = key.icon;
+
+    /* Skip emoji button if necessary */
+    if (!this._emojiKeyVisible && action == 'emoji')
+      continue;
+
+    extraButton = new Keyboard.Key(key.label || '', [], icon);
+
+    extraButton.keyButton.add_style_class_name('default-key');
+    if (key.extraClassName != null)
+      extraButton.keyButton.add_style_class_name(key.extraClassName);
+    if (key.width != null)
+      extraButton.setWidth(key.width);
+
+    let actor = extraButton.keyButton;
+
+    extraButton.connect('pressed', () => {
+      if (switchToLevel != null) {
+        this._setActiveLayer(switchToLevel);
+        // Shift only gets latched on long press
+        this._latched = switchToLevel != 1;
+      } else if (keyval != null) {
+        this._keyboardController.keyvalPress(keyval);
+      }
+    });
+    extraButton.connect('released', () => {
+      // === Override starts here ===
+      if (keyval != null) return this._keyboardController.keyvalRelease(keyval);
+
+      switch (action) {
+        case 'hide':
+          // Press latched ctrl/super/alt keys again to release them before hiding OSK
+          if (this._keyboardController._controlActive) this._keyboardController.keyvalPress(Clutter.KEY_Control_L);
+          if (this._keyboardController._superActive) this._keyboardController.keyvalPress(Clutter.KEY_Super_L);
+          if (this._keyboardController._altActive) this._keyboardController.keyvalPress(Clutter.KEY_Alt_L);
+
+          this.close();
+          break;
+
+        case 'languageMenu':
+          this._popupLanguageMenu(actor);
+          break;
+
+        case 'emoji':
+          this._toggleEmoji();
+          break;
+
+        // no default
+      }
+      // === Override ends here ===
+    });
+
+    if (switchToLevel == 0) {
+      layout.shiftKeys.push(extraButton);
+    } else if (switchToLevel == 1) {
+      extraButton.connect('long-press', () => {
+        this._latched = true;
+        this._setCurrentLevelLatched(this._currentPage, this._latched);
+      });
+    }
+
+    /* Fixup default keys based on the number of levels/keys */
+    if (switchToLevel == 1 && numLevels == 3) {
+      // Hide shift key if the keymap has no uppercase level
+      if (key.right) {
+        /* Only hide the key actor, so the container still takes space */
+        extraButton.keyButton.hide();
+      } else {
+        extraButton.hide();
+      }
+      extraButton.setWidth(1.5);
+    } else if (key.right && numKeys > 8) {
+      extraButton.setWidth(2);
+    } else if (keyval == Clutter.KEY_Return && numKeys > 9) {
+      extraButton.setWidth(1.5);
+    } else if (!this._emojiKeyVisible && (action == 'hide' || action == 'languageMenu')) {
+      extraButton.setWidth(1.5);
+    }
+
+    layout.appendKey(extraButton, extraButton.keyButton.keyWidth);
+  }
+}
+
 /*
 To add a number row the KeyboardModel needs to be overriden but that will break the keyboard right now :(
 
@@ -535,49 +647,43 @@ let KeyboardModel = class {
 };
 */
 function enable_overrides() {
-  Keyboard.KeyboardManager.prototype[
-    "_lastDeviceIsTouchscreen"
-  ] = override_lastDeviceIsTouchScreen;
   Keyboard.Keyboard.prototype["_relayout"] = override_relayout;
-  Keyboard.Keyboard.prototype[
-    "_getDefaultKeysForRow"
-  ] = override_getDefaultKeysForRow;
-  Keyboard.KeyboardController.prototype[
-    "constructor"
-  ] = override_keyboardControllerConstructor;
+  Keyboard.Keyboard.prototype["_loadDefaultKeys"] = override_loadDefaultKeys;
+  Keyboard.Keyboard.prototype["_getDefaultKeysForRow"] = override_getDefaultKeysForRow;
+
+  Keyboard.KeyboardController.prototype["constructor"] = override_keyboardControllerConstructor;
   Keyboard.KeyboardController.prototype["keyvalPress"] = override_keyvalPress;
-  Keyboard.KeyboardController.prototype[
-    "keyvalRelease"
-  ] = override_keyvalRelease;
+  Keyboard.KeyboardController.prototype["keyvalRelease"] = override_keyvalRelease;
+  Keyboard.KeyboardController.prototype["commitString"] = override_commitString;
+
+  Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] = override_lastDeviceIsTouchScreen;
 }
 
 function disable_overrides() {
-  Keyboard.Keyboard.prototype[
-    "_getDefaultKeysForRow"
-  ] = backup_DefaultKeysForRow;
+  Keyboard.Keyboard.prototype["_relayout"] = backup_relayout;
+  Keyboard.Keyboard.prototype["_loadDefaultKeys"] = backup_loadDefaultKeys;
+  Keyboard.Keyboard.prototype["_getDefaultKeysForRow"] = backup_DefaultKeysForRow;
 
-  Keyboard.KeyboardController.prototype[
-    "constructor"
-  ] = backup_keyboardControllerConstructor;
+  Keyboard.KeyboardController.prototype["constructor"] = backup_keyboardControllerConstructor;
   Keyboard.KeyboardController.prototype["keyvalPress"] = backup_keyvalPress;
   Keyboard.KeyboardController.prototype["keyvalRelease"] = backup_keyvalRelease;
-  Keyboard.Keyboard.prototype["_relayout"] = backup_relayout;
-  Keyboard.KeyboardManager.prototype[
-    "_lastDeviceIsTouchscreen"
-  ] = backup_lastDeviceIsTouchScreen;
+  Keyboard.KeyboardController.prototype["commitString"] = backup_commitString;
+
+  Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] = backup_lastDeviceIsTouchScreen;
 }
 
 // Extension
 function init() {
-  backup_lastDeviceIsTouchScreen =
-    Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
-  backup_DefaultKeysForRow =
-    Keyboard.Keyboard.prototype["_getDefaultKeysForRow"];
-  backup_keyboardControllerConstructor =
-    Keyboard.KeyboardController.prototype["constructor"];
+  backup_relayout = Keyboard.Keyboard.prototype["_relayout"];
+  backup_loadDefaultKeys = Keyboard.Keyboard.prototype["_loadDefaultKeys"]
+  backup_DefaultKeysForRow = Keyboard.Keyboard.prototype["_getDefaultKeysForRow"];
+
+  backup_keyboardControllerConstructor = Keyboard.KeyboardController.prototype["constructor"];
   backup_keyvalPress = Keyboard.KeyboardController.prototype["keyvalPress"];
   backup_keyvalRelease = Keyboard.KeyboardController.prototype["keyvalRelease"];
-  backup_relayout = Keyboard.Keyboard.prototype["_relayout"];
+  backup_commitString = Keyboard.KeyboardController.prototype["commitString"];
+
+  backup_lastDeviceIsTouchScreen = Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
 }
 
 function enable() {
