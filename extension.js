@@ -513,8 +513,21 @@ function override_keyboardControllerConstructor() {
 
 function override_commitString(string, fromKey) {
   // Prevents alpha-numeric key presses from bypassing override_keyvalPress()
-  // Fixes "ctrl/alt/super + key" combinations not working
-  return false;
+  // while ctrl/alt/super are latched
+  if (
+      this._controlActive
+      || this._superActive
+      || this._altActive
+  ) {
+    return false;
+  }
+
+  if (string == null) return false;
+  /* Let ibus methods fall through keyval emission */
+  if (fromKey && this._currentSource.type == InputSourceManager.INPUT_SOURCE_TYPE_IBUS) return false;
+
+  Main.inputMethod.commit(string);
+  return true;
 }
 
 // Bulk of this method remains unchanged, except for extraButton.connect('released') event listener.
