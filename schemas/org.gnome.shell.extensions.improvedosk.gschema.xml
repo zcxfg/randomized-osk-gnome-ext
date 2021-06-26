@@ -16,7 +16,7 @@
       <default>33</default>
     </key>
     <key name="portrait-height" type="i">
-      <default>33</default>
+      <default>16</default>
     </key>
   </schema>
 </schemalist>
