@@ -38,14 +38,14 @@ let OSKIndicator = GObject.registerClass(
         style_class: "system-status-icon",
       });
 
-      this.actor.add_child(icon);
-      this.actor.connect("button-press-event", function (actor, event) {
+      this.add_child(icon);
+      this.connect("button-press-event", function (actor, event) {
         let button = event.get_button();
         if (button == 3) {
           ExtensionUtils.openPrefs();
         }
       });
-      this.actor.connect("touch-event", function () {
+      this.connect("touch-event", function () {
         if (Main.keyboard._keyboardVisible) {
           Main.keyboard.close();
         } else {
