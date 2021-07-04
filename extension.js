@@ -39,18 +39,24 @@ let OSKIndicator = GObject.registerClass(
       });
 
       this.add_child(icon);
+
       this.connect("button-press-event", function (actor, event) {
         let button = event.get_button();
+
+        if (button == 1) {
+          if (Main.keyboard._keyboardVisible) return Main.keyboard.close();
+
+          Main.keyboard.open(Main.layoutManager.bottomIndex);
+        }
         if (button == 3) {
           ExtensionUtils.openPrefs();
         }
       });
+
       this.connect("touch-event", function () {
-        if (Main.keyboard._keyboardVisible) {
-          Main.keyboard.close();
-        } else {
-          Main.keyboard.open(Main.layoutManager.bottomIndex);
-        }
+        if (Main.keyboard._keyboardVisible) return Main.keyboard.close();
+
+        Main.keyboard.open(Main.layoutManager.bottomIndex);
       });
     }
   }
