@@ -17,10 +17,7 @@ let backup_keyvalRelease;
 let backup_commitString;
 let backup_loadDefaultKeys;
 let _indicator;
-
-let settings = ExtensionUtils.getSettings(
-  "org.gnome.shell.extensions.improvedosk"
-);
+let settings;
 
 let _oskA11yApplicationsSettings = new Gio.Settings({
   schema_id: A11Y_APPLICATIONS_SCHEMA,
@@ -669,6 +666,10 @@ function init() {
 }
 
 function enable() {
+  settings = ExtensionUtils.getSettings(
+      "org.gnome.shell.extensions.improvedosk"
+  );
+
   Main.layoutManager.removeChrome(Main.layoutManager.keyboardBox);
 
   // Set up the indicator in the status area
