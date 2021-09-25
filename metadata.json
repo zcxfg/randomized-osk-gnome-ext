@@ -3,9 +3,10 @@
   "name": "Improved OSK",
   "shell-version": [
     "3.38",
-    "40"
+    "40",
+    "41"
   ],
   "url": "https://github.com/nick-shmyrev/improved-osk-gnome-ext",
   "uuid": "improvedosk@nick-shmyrev.dev",
-  "version": 1
+  "version": 2
 }
