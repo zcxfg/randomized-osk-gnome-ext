@@ -8,6 +8,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 const InputSourceManager = imports.ui.status.keyboard;
 
 const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
+let _oskA11yApplicationsSettings;
 let backup_lastDeviceIsTouchScreen;
 let backup_relayout;
 let backup_DefaultKeysForRow;
@@ -18,10 +19,6 @@ let backup_commitString;
 let backup_loadDefaultKeys;
 let _indicator;
 let settings;
-
-let _oskA11yApplicationsSettings = new Gio.Settings({
-  schema_id: A11Y_APPLICATIONS_SCHEMA,
-});
 
 // Indicator
 let OSKIndicator = GObject.registerClass(
@@ -669,6 +666,9 @@ function enable() {
   settings = ExtensionUtils.getSettings(
       "org.gnome.shell.extensions.improvedosk"
   );
+  _oskA11yApplicationsSettings = new Gio.Settings({
+    schema_id: A11Y_APPLICATIONS_SCHEMA,
+  });
 
   Main.layoutManager.removeChrome(Main.layoutManager.keyboardBox);
 
