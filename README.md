@@ -23,9 +23,13 @@ Clone the git repo
 git clone https://github.com/nick-shmyrev/improved-osk-gnome-ext.git ~/.local/share/gnome-shell/extensions/improvedosk@nick-shmyrev.dev
 ```
 
-On X11, reload Gnome by pressing `alt + F2` and enter `r`.
+### From extensions.gnome.org
 
-On Wayland, log out and log back in to reload Gnome.
+https://extensions.gnome.org/extension/4413/improved-osk/
+
+## Activation
+
+After installing and enabling extension, reload Gnome Shell. On X11, press `alt + F2` and enter `r`. On Wayland, log out and back in to reload Gnome Shell.
 
 ## FAQ
 
