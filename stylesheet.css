@@ -1,6 +1,7 @@
 .control-key-latched .control-key,
 .super-key-latched .super-key,
-.alt-key-latched .alt-key {
+.alt-key-latched .alt-key,
+.shift-key-uppercase {
       background-color: #55a54c;
 }
 

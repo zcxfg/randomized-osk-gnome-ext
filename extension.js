@@ -241,7 +241,7 @@ function override_getDefaultKeysForRow(row, numRows, level) {
     [
       [{ label: "Esc", width: 1, keyval: Clutter.KEY_Escape }],
       [{ label: "↹", width: 1.5, keyval: Clutter.KEY_Tab }],
-      [{ width: 1.5, level: 0, extraClassName: "shift-key-uppercase" }],
+      [{ label: "⇑", width: 1.5, level: 0, extraClassName: "shift-key-uppercase" }],
       [
         {
           label: "Ctrl",
@@ -360,7 +360,12 @@ function override_getDefaultKeysForRow(row, numRows, level) {
         { label: "⇊", width: 1, action: "hide", extraClassName: "hide-key" },
       ],
       [
-        { width: 2, keyval: Clutter.KEY_Return, extraClassName: "enter-key" },
+        {
+          label: "⏎",
+          width: 2,
+          keyval: Clutter.KEY_Return,
+          extraClassName: "enter-key",
+        },
         {
           label: "🗺",
           width: 1.5,
@@ -370,6 +375,7 @@ function override_getDefaultKeysForRow(row, numRows, level) {
       ],
       [
         {
+          label: "⇑",
           width: 3,
           level: 0,
           right: true,
