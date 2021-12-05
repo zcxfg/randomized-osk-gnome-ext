@@ -8,3 +8,7 @@
 #keyboard {
       background-color: #000000;
 }
+
+#keyboard .keyboard-key.default-key {
+      color: #fff;
+}
