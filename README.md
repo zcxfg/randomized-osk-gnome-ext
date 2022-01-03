@@ -38,3 +38,6 @@ the keyboard uses unicode characters, try install ttf-symbola on archlinux (AUR)
 
 ### Do i need to enable the OSK in Gnome accessibility settings?
 By default the keyboard will popup on touch input events. Enabling the keyboard in the accessibility settings just allows the OSK to popup on non touch input.
+
+### Extension is installed and activated, but keyboard layout doesn't change.
+Gnome's default on-screen keyboard, on which this extension is based on, uses `ibus` package, make sure you have it installed.
