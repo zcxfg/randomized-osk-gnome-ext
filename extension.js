@@ -742,6 +742,8 @@ function disable() {
     _indicator.destroy();
     _indicator = null;
   }
+  
+  settings = null;
 
   disable_overrides();
 
