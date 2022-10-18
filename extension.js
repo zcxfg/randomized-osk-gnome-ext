@@ -38,7 +38,7 @@ let OSKIndicator = GObject.registerClass(
         let button = event.get_button();
 
         if (button == 1) {
-          if (Main.keyboard._keyboardVisible) return Main.keyboard.close();
+          if (Main.keyboard._keyboard._keyboardVisible) return Main.keyboard.close();
 
           Main.keyboard.open(Main.layoutManager.bottomIndex);
         }
@@ -48,7 +48,7 @@ let OSKIndicator = GObject.registerClass(
       });
 
       this.connect("touch-event", function () {
-        if (Main.keyboard._keyboardVisible) return Main.keyboard.close();
+        if (Main.keyboard._keyboard._keyboardVisible) return Main.keyboard.close();
 
         Main.keyboard.open(Main.layoutManager.bottomIndex);
       });
@@ -742,7 +742,7 @@ function disable() {
     _indicator.destroy();
     _indicator = null;
   }
-  
+
   settings = null;
 
   disable_overrides();

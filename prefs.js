@@ -94,7 +94,7 @@ function buildPrefsWidget() {
   prefsWidget.attach(labelResizeDesktop, 0, 2, 1, 1);
 
   let labelIgnoreTouchInput = new Gtk.Label({
-    label: "Ignore touch-input",
+    label: "Ignore touch-input:",
     halign: Gtk.Align.START,
     visible: true,
   });
@@ -115,7 +115,7 @@ function buildPrefsWidget() {
   prefsWidget.attach(labelIgnoreTouchInput, 0, 3, 1, 1);
 
   let labelShowStatusbarIcon = new Gtk.Label({
-    label: "Show statusbar icon",
+    label: "Show OSK toggle in statusbar:",
     halign: Gtk.Align.START,
     visible: true,
   });
