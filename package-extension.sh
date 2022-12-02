@@ -21,6 +21,8 @@ cp "../src/extension.js" "./extension.js"
 cp "../src/prefs.js" "./prefs.js"
 cp "../src/metadata.json" "./metadata.json"
 cp "../src/stylesheet.css" "./stylesheet.css"
+mkdir data
+cp "../src/data/gnome-shell-osk-layouts.gresource" "./data/gnome-shell-osk-layouts.gresource"
 cp -r "../src/schemas/" "./schemas/"
 cp "../LICENSE" "./LICENSE"
 cp "../README.md" "./README.md"
