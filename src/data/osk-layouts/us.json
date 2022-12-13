@@ -280,8 +280,8 @@
       "rows": [
         [
           {
-            "keyval": "0xff09",
-            "label": "Tab",
+            "keyval": "0xff1b",
+            "label": "Esc",
             "width": 1
           },
           {
