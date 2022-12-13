@@ -6,6 +6,11 @@
       "rows": [
         [
           {
+            "keyval": "0xff1b",
+            "label": "Esc",
+            "width": 1
+          },
+          {
             "strings": [
               "й"
             ]
@@ -64,10 +69,16 @@
           {
             "action": "delete",
             "iconName": "edit-clear-symbolic",
-            "width": 1.5
+            "width": 2
           }
         ],
         [
+          {
+            "keyval": "0xff09",
+            "label": "Tab",
+            "level": 1,
+            "width": 1.5
+          },
           {
             "strings": [
               "ф"
@@ -134,7 +145,7 @@
             "action": "levelSwitch",
             "iconName": "keyboard-shift-symbolic",
             "level": 1,
-            "width": 1.5
+            "width": 2
           },
           {
             "strings": [
@@ -183,6 +194,10 @@
             ]
           },
           {
+            "iconName": "go-up-symbolic",
+            "keyval": "0xff52"
+          },
+          {
             "action": "levelSwitch",
             "iconName": "keyboard-shift-symbolic",
             "level": 1,
@@ -191,10 +206,19 @@
         ],
         [
           {
+            "action": "modifier",
+            "keyval": "0xffe3",
+            "label": "Ctrl"
+          },
+          {
             "action": "levelSwitch",
             "label": "?123",
-            "level": 2,
-            "width": 1.5
+            "level": 2
+          },
+          {
+            "action": "modifier",
+            "keyval": "0xffe9",
+            "label": "Alt"
           },
           {
             "strings": [
@@ -205,7 +229,7 @@
             "strings": [
               " "
             ],
-            "width": 6
+            "width": 3
           },
           {
             "strings": [
@@ -227,6 +251,18 @@
           {
             "action": "languageMenu",
             "iconName": "keyboard-layout-symbolic"
+          },
+          {
+            "iconName": "go-previous-symbolic",
+            "keyval": "0xff51"
+          },
+          {
+            "iconName": "go-down-symbolic",
+            "keyval": "0xff54"
+          },
+          {
+            "iconName": "go-next-symbolic",
+            "keyval": "0xff53"
           },
           {
             "action": "hide",
