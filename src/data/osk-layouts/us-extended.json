@@ -158,7 +158,8 @@
         ],
         [
           {
-            "action": "levelSwitch",
+            "action": "modifier",
+            "keyval": "0xffe1",
             "iconName": "keyboard-shift-symbolic",
             "level": 1,
             "width": 2
