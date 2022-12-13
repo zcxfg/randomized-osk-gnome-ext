@@ -6,8 +6,8 @@
       "rows": [
         [
           {
-            "keyval": "0xff09",
-            "label": "Tab",
+            "keyval": "0xff1b",
+            "label": "Esc",
             "width": 1
           },
           {
@@ -91,9 +91,8 @@
         ],
         [
           {
-            "action": "levelSwitch",
-            "iconName": "keyboard-caps-lock-symbolic",
-            "level": 1,
+            "keyval": "0xff09",
+            "label": "Tab",
             "width": 1.5
           },
           {
@@ -281,8 +280,8 @@
       "rows": [
         [
           {
-            "keyval": "0xff09",
-            "label": "Tab",
+            "keyval": "0xff1b",
+            "label": "Esc",
             "width": 1
           },
           {
@@ -366,9 +365,8 @@
         ],
         [
           {
-            "action": "levelSwitch",
-            "iconName": "keyboard-caps-lock-symbolic",
-            "level": 0,
+            "keyval": "0xff09",
+            "label": "Tab",
             "width": 1.5
           },
           {
