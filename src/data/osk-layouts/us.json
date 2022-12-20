@@ -810,6 +810,56 @@
       "rows": [
         [
           {
+            "label": "F1",
+            "keyval": "0xffbe"
+          },
+          {
+            "label": "F2",
+            "keyval": "0xffbf"
+          },
+          {
+            "label": "F3",
+            "keyval": "0xffc0"
+          },
+          {
+            "label": "F4",
+            "keyval": "0xffc1"
+          },
+          {
+            "label": "F5",
+            "keyval": "0xffc2"
+          },
+          {
+            "label": "F6",
+            "keyval": "0xffc3"
+          },
+          {
+            "label": "F7",
+            "keyval": "0xffc4"
+          },
+          {
+            "label": "F8",
+            "keyval": "0xffc5"
+          },
+          {
+            "label": "F9",
+            "keyval": "0xffc6"
+          },
+          {
+            "label": "F10",
+            "keyval": "0xffc7"
+          },
+          {
+            "label": "F11",
+            "keyval": "0xffc8"
+          },
+          {
+            "label": "F12",
+            "keyval": "0xffc9"
+          }
+        ],
+        [
+          {
             "strings": [
               "~"
             ]
@@ -869,7 +919,7 @@
           {
             "iconName": "edit-clear-symbolic",
             "keyval": "0xff08",
-            "width": 1.5
+            "width": 2
           }
         ],
         [
@@ -930,7 +980,7 @@
           {
             "iconName": "keyboard-enter-symbolic",
             "keyval": "0xff0d",
-            "width": 2
+            "width": 3
           }
         ],
         [
@@ -938,7 +988,7 @@
             "action": "levelSwitch",
             "label": "?123",
             "level": 2,
-            "width": 1.5
+            "width": 2
           },
           {
             "strings": [
@@ -987,7 +1037,7 @@
             "action": "levelSwitch",
             "label": "ABC",
             "level": 0,
-            "width": 1.5
+            "width": 2
           },
           {
             "strings": [
