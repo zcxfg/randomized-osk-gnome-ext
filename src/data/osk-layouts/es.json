@@ -6,6 +6,11 @@
       "rows": [
         [
           {
+            "keyval": "0xff1b",
+            "label": "Esc",
+            "width": 1.5
+          },
+          {
             "strings": [
               "q"
             ]
@@ -85,10 +90,15 @@
           {
             "action": "delete",
             "iconName": "edit-clear-symbolic",
-            "width": 1.5
+            "width": 2
           }
         ],
         [
+          {
+            "keyval": "0xff09",
+            "label": "Tab",
+            "width": 1.5
+          },
           {
             "strings": [
               "a",
@@ -152,13 +162,14 @@
           {
             "iconName": "keyboard-enter-symbolic",
             "keyval": "0xff0d",
-            "width": 1.5
+            "width": 2
           }
         ],
         [
           {
             "action": "levelSwitch",
             "iconName": "keyboard-shift-symbolic",
+            "width": 1.5,
             "level": 1
           },
           {
@@ -220,39 +231,64 @@
             ]
           },
           {
+            "iconName": "go-up-symbolic",
+            "keyval": "0xff52"
+          },
+          {
             "action": "levelSwitch",
             "iconName": "keyboard-shift-symbolic",
             "level": 1,
-            "width": 1.5
+            "width": 2
           }
         ],
         [
           {
+            "action": "modifier",
+            "keyval": "0xffe3",
+            "label": "Ctrl"
+          },
+          {
             "action": "levelSwitch",
             "label": "?123",
-            "level": 2,
-            "width": 1.5
+            "level": 2
+          },
+          {
+            "action": "modifier",
+            "keyval": "0xffe9",
+            "label": "Alt"
           },
           {
             "action": "emoji",
             "iconName": "face-smile-symbolic",
-            "width": 1.5
+            "width": 1
           },
           {
             "strings": [
               " "
             ],
-            "width": 5
+            "width": 4.5
           },
           {
             "action": "languageMenu",
             "iconName": "keyboard-layout-symbolic",
-            "width": 1.5
+            "width": 1
+          },
+          {
+            "iconName": "go-previous-symbolic",
+            "keyval": "0xff51"
+          },
+          {
+            "iconName": "go-down-symbolic",
+            "keyval": "0xff54"
+          },
+          {
+            "iconName": "go-next-symbolic",
+            "keyval": "0xff53"
           },
           {
             "action": "hide",
             "iconName": "keyboard-hide-symbolic",
-            "width": 2
+            "width": 1
           }
         ]
       ]
@@ -262,6 +298,11 @@
       "mode": "latched",
       "rows": [
         [
+          {
+            "keyval": "0xff1b",
+            "label": "Esc",
+            "width": 1.5
+          },
           {
             "strings": [
               "Q"
@@ -342,10 +383,15 @@
           {
             "action": "delete",
             "iconName": "edit-clear-symbolic",
-            "width": 1.5
+            "width": 2
           }
         ],
         [
+          {
+            "keyval": "0xff09",
+            "label": "Tab",
+            "width": 1.5
+          },
           {
             "strings": [
               "A",
@@ -409,13 +455,14 @@
           {
             "iconName": "keyboard-enter-symbolic",
             "keyval": "0xff0d",
-            "width": 1.5
+            "width": 2
           }
         ],
         [
           {
             "action": "levelSwitch",
             "iconName": "keyboard-shift-symbolic",
+            "width": 1.5,
             "level": 0
           },
           {
@@ -477,39 +524,64 @@
             ]
           },
           {
+            "iconName": "go-up-symbolic",
+            "keyval": "0xff52"
+          },
+          {
             "action": "levelSwitch",
             "iconName": "keyboard-shift-symbolic",
             "level": 0,
-            "width": 1.5
+            "width": 2
           }
         ],
         [
           {
+            "action": "modifier",
+            "keyval": "0xffe3",
+            "label": "Ctrl"
+          },
+          {
             "action": "levelSwitch",
             "label": "?123",
-            "level": 2,
-            "width": 1.5
+            "level": 2
+          },
+          {
+            "action": "modifier",
+            "keyval": "0xffe9",
+            "label": "Alt"
           },
           {
             "action": "emoji",
             "iconName": "face-smile-symbolic",
-            "width": 1.5
+            "width": 1
           },
           {
             "strings": [
               " "
             ],
-            "width": 5
+            "width": 4.5
           },
           {
             "action": "languageMenu",
             "iconName": "keyboard-layout-symbolic",
-            "width": 1.5
+            "width": 1
+          },
+          {
+            "iconName": "go-previous-symbolic",
+            "keyval": "0xff51"
+          },
+          {
+            "iconName": "go-down-symbolic",
+            "keyval": "0xff54"
+          },
+          {
+            "iconName": "go-next-symbolic",
+            "keyval": "0xff53"
           },
           {
             "action": "hide",
             "iconName": "keyboard-hide-symbolic",
-            "width": 2
+            "width": 1
           }
         ]
       ]
@@ -779,6 +851,56 @@
       "rows": [
         [
           {
+            "label": "F1",
+            "keyval": "0xffbe"
+          },
+          {
+            "label": "F2",
+            "keyval": "0xffbf"
+          },
+          {
+            "label": "F3",
+            "keyval": "0xffc0"
+          },
+          {
+            "label": "F4",
+            "keyval": "0xffc1"
+          },
+          {
+            "label": "F5",
+            "keyval": "0xffc2"
+          },
+          {
+            "label": "F6",
+            "keyval": "0xffc3"
+          },
+          {
+            "label": "F7",
+            "keyval": "0xffc4"
+          },
+          {
+            "label": "F8",
+            "keyval": "0xffc5"
+          },
+          {
+            "label": "F9",
+            "keyval": "0xffc6"
+          },
+          {
+            "label": "F10",
+            "keyval": "0xffc7"
+          },
+          {
+            "label": "F11",
+            "keyval": "0xffc8"
+          },
+          {
+            "label": "F12",
+            "keyval": "0xffc9"
+          }
+        ],
+        [
+          {
             "strings": [
               "~"
             ]
@@ -838,7 +960,7 @@
           {
             "action": "delete",
             "iconName": "edit-clear-symbolic",
-            "width": 1.5
+            "width": 2
           }
         ],
         [
@@ -900,7 +1022,7 @@
           {
             "iconName": "keyboard-enter-symbolic",
             "keyval": "0xff0d",
-            "width": 2
+            "width": 3
           }
         ],
         [
@@ -908,7 +1030,7 @@
             "action": "levelSwitch",
             "label": "?123",
             "level": 2,
-            "width": 1.5
+            "width": 2
           },
           {
             "strings": [
@@ -957,7 +1079,7 @@
             "action": "levelSwitch",
             "label": "ABC",
             "level": 0,
-            "width": 1.5
+            "width": 2
           },
           {
             "strings": [
