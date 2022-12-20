@@ -93,7 +93,6 @@
           {
             "keyval": "0xff09",
             "label": "Tab",
-            "level": 1,
             "width": 1.5
           },
           {
@@ -367,7 +366,6 @@
           {
             "keyval": "0xff09",
             "label": "Tab",
-            "level": 0,
             "width": 1.5
           },
           {
