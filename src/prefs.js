@@ -9,7 +9,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 function init() {}
 
 function buildPrefsWidget() {
-  let gschema = Gio.SettingsSchemaSource.new_from_directory(
+  const gschema = Gio.SettingsSchemaSource.new_from_directory(
     Me.dir.get_child("schemas").get_path(),
     Gio.SettingsSchemaSource.get_default(),
     false
@@ -23,7 +23,7 @@ function buildPrefsWidget() {
   });
 
   // https://gjs-docs.gnome.org/gtk40/gtk.widget#index-properties
-  let prefsWidget = new Gtk.Grid({
+  const prefsWidget = new Gtk.Grid({
     margin_top: 24,
     margin_bottom: 24,
     margin_start: 24,
@@ -33,8 +33,8 @@ function buildPrefsWidget() {
     visible: true,
   });
 
-  let labelPortraitHeight = new Gtk.Label({
-    label: "Portrait Height in Percent:",
+  const labelPortraitHeight = new Gtk.Label({
+    label: "Portrait Height in Percent",
     halign: Gtk.Align.START,
     visible: true,
   });
@@ -42,19 +42,17 @@ function buildPrefsWidget() {
 
   let inputPortraitHeight = new Gtk.SpinButton();
   inputPortraitHeight.set_range(0, 100);
-  inputPortraitHeight.set_sensitive(true);
   inputPortraitHeight.set_increments(1, 10);
+  this.settings.bind(
+    "portrait-height",
+    inputPortraitHeight,
+    "value",
+    Gio.SettingsBindFlags.DEFAULT
+  );
   prefsWidget.attach(inputPortraitHeight, 1, 0, 1, 1);
-  inputPortraitHeight.set_value(settings.get_int("portrait-height"));
-  inputPortraitHeight.connect("value-changed", (widget) => {
-    settings.set_int("portrait-height", widget.get_value_as_int());
-  });
-  settings.connect("changed::portrait-height", () => {
-    inputPortraitHeight.set_value(settings.get_int("portrait-height"));
-  });
 
-  let labelLandscapeHeight = new Gtk.Label({
-    label: "Landscape Height in Percent:",
+  const labelLandscapeHeight = new Gtk.Label({
+    label: "Landscape Height in Percent",
     halign: Gtk.Align.START,
     visible: true,
   });
@@ -62,82 +60,106 @@ function buildPrefsWidget() {
 
   let inputLandscapeHeight = new Gtk.SpinButton();
   inputLandscapeHeight.set_range(0, 100);
-  inputLandscapeHeight.set_sensitive(true);
   inputLandscapeHeight.set_increments(1, 10);
+  this.settings.bind(
+    "landscape-height",
+    inputLandscapeHeight,
+    "value",
+    Gio.SettingsBindFlags.DEFAULT
+  );
   prefsWidget.attach(inputLandscapeHeight, 1, 1, 1, 1);
-  inputLandscapeHeight.set_value(settings.get_int("landscape-height"));
-  inputLandscapeHeight.connect("value-changed", (widget) => {
-    settings.set_int("landscape-height", widget.get_value_as_int());
-  });
-  settings.connect("changed::landscape-height", () => {
-    inputLandscapeHeight.set_value(settings.get_int("landscape-height"));
-  });
 
-  let labelResizeDesktop = new Gtk.Label({
-    label: "Resize Desktop (Shell restart required):",
+  const labelResizeDesktop = new Gtk.Label({
+    label: "Resize Desktop (Shell restart required)",
     halign: Gtk.Align.START,
     visible: true,
   });
-
-  let inputResizeDesktop = new Gtk.CheckButton({
-    label: "active",
-  });
-  inputResizeDesktop.set_active(settings.get_boolean("resize-desktop"));
-  inputResizeDesktop.connect("toggled", (widget) => {
-    settings.set_boolean("resize-desktop", widget.get_active());
-  });
-  settings.connect("changed::resize-dekstop", () => {
-    inputResizeDesktop.set_active(settings.get_boolean("resize-desktop"));
-  });
-  prefsWidget.attach(inputResizeDesktop, 1, 2, 1, 1);
-
   prefsWidget.attach(labelResizeDesktop, 0, 2, 1, 1);
 
-  let labelIgnoreTouchInput = new Gtk.Label({
+  let inputResizeDesktop = new Gtk.Switch({
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  this.settings.bind(
+    "resize-desktop",
+    inputResizeDesktop,
+    "active",
+    Gio.SettingsBindFlags.DEFAULT
+  );
+  prefsWidget.attach(inputResizeDesktop, 1, 2, 1, 1);
+
+  const labelIgnoreTouchInput = new Gtk.Label({
     label: "Ignore touch-input",
     halign: Gtk.Align.START,
     visible: true,
   });
-
-  let inputIgnoreTouchInput = new Gtk.CheckButton({
-    label: "active",
-  });
-  inputIgnoreTouchInput.set_active(settings.get_boolean("ignore-touch-input"));
-  inputIgnoreTouchInput.connect("toggled", (widget) => {
-    settings.set_boolean("ignore-touch-input", widget.get_active());
-  });
-  settings.connect("changed::ignore-touch-input", () => {
-    inputIgnoreTouchInput.set_active(
-      settings.get_boolean("ignore-touch-input")
-    );
-  });
-  prefsWidget.attach(inputIgnoreTouchInput, 1, 3, 1, 1);
   prefsWidget.attach(labelIgnoreTouchInput, 0, 3, 1, 1);
 
-  let labelShowStatusbarIcon = new Gtk.Label({
+  let inputIgnoreTouchInput = new Gtk.Switch({
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  this.settings.bind(
+    "ignore-touch-input",
+    inputIgnoreTouchInput,
+    "active",
+    Gio.SettingsBindFlags.DEFAULT
+  );
+  //Gray out on force-touch-input
+  this.settings.bind(
+    "force-touch-input",
+    inputIgnoreTouchInput,
+    "sensitive",
+    Gio.SettingsBindFlags.INVERT_BOOLEAN
+  );
+  prefsWidget.attach(inputIgnoreTouchInput, 1, 3, 1, 1);
+
+  const labelForceTouchInput = new Gtk.Label({
+    label: "Force touch-input",
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  prefsWidget.attach(labelForceTouchInput, 0, 4, 1, 1);
+
+  let inputForceTouchInput = new Gtk.Switch({
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  this.settings.bind(
+    "force-touch-input",
+    inputForceTouchInput,
+    "active",
+    Gio.SettingsBindFlags.DEFAULT
+  );
+  //Gray out on ignore-touch-input
+  this.settings.bind(
+    "ignore-touch-input",
+    inputForceTouchInput,
+    "sensitive",
+    Gio.SettingsBindFlags.INVERT_BOOLEAN
+  );
+  prefsWidget.attach(inputForceTouchInput, 1, 4, 1, 1);
+
+  const labelShowStatusbarIcon = new Gtk.Label({
     label: "Show statusbar icon",
     halign: Gtk.Align.START,
     visible: true,
   });
+  prefsWidget.attach(labelShowStatusbarIcon, 0, 5, 1, 1);
 
-  let inputShowStatusbarIcon = new Gtk.CheckButton({
-    label: "active",
+  let inputShowStatusbarIcon = new Gtk.Switch({
+    halign: Gtk.Align.START,
+    visible: true,
   });
-  inputShowStatusbarIcon.set_active(
-    settings.get_boolean("show-statusbar-icon")
+  this.settings.bind(
+    "show-statusbar-icon",
+    inputShowStatusbarIcon,
+    "active",
+    Gio.SettingsBindFlags.DEFAULT
   );
-  inputShowStatusbarIcon.connect("toggled", (widget) => {
-    settings.set_boolean("show-statusbar-icon", widget.get_active());
-  });
-  settings.connect("changed::show-statusbar-icon", () => {
-    inputShowStatusbarIcon.set_active(
-      settings.get_boolean("show-statusbar-icon")
-    );
-  });
-  prefsWidget.attach(inputShowStatusbarIcon, 1, 4, 1, 1);
-  prefsWidget.attach(labelShowStatusbarIcon, 0, 4, 1, 1);
+  prefsWidget.attach(inputShowStatusbarIcon, 1, 5, 1, 1);
 
-  if (typeof prefsWidget.show_all === 'function') {
+  if (typeof prefsWidget.show_all === "function") {
     // Adds backward compatibility with Gnome 38
     prefsWidget.show_all();
   } else {

@@ -5,31 +5,31 @@
 root_dir=$PWD
 zip_filename="improvedosk@nick-shmyrev.dev.shell-extension.zip"
 
-# Remove existing .zip file
-rm -f './$zip_filename'
+# Remove existing .zip
+rm -f "$zip_filename"
 
-# Compile gnome-shell-osk-layouts.gresource file before packaging extension
-cd './src/data'
+# Compile gnome-shell-osk-layouts.gresource
+cd src/data/ || exit
 ./compile-gresource.sh
 
-cd $root_dir
+# Compile gschemas.compiled
+cd ../schemas || exit
+glib-compile-schemas .
+
+cd "$root_dir" || exit
 
 # Create expected .zip folders structure
 mkdir dist
-cd dist
-cp "../src/extension.js" "./extension.js"
-cp "../src/prefs.js" "./prefs.js"
-cp "../src/metadata.json" "./metadata.json"
-cp "../src/stylesheet.css" "./stylesheet.css"
-mkdir data
-cp "../src/data/gnome-shell-osk-layouts.gresource" "./data/gnome-shell-osk-layouts.gresource"
-cp -r "../src/schemas/" "./schemas/"
-cp "../LICENSE" "./LICENSE"
-cp "../README.md" "./README.md"
+cp LICENSE README.md src/*.js src/metadata.json src/stylesheet.css dist/
+mkdir dist/data
+cp src/data/gnome-shell-osk-layouts.gresource dist/data/
+mkdir dist/schemas
+cp src/schemas/gschemas.compiled dist/schemas/
 
 # Add necessary extension files to archive
+cd dist/ || exit
 zip -r "../$zip_filename" ./*
+cd "$root_dir" || exit
 
 # Cleanup
-cd $root_dir
-rm -r ./dist
+rm -r dist src/data/*.gresource src/schemas/*.compiled

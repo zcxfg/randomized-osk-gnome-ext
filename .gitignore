@@ -1,3 +1,5 @@
 .idea/
 dist/
-improvedosk@nick-shmyrev.dev.shell-extension.zip
+*.zip
+*.gresource
+*.compiled

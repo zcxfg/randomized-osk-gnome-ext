@@ -10,6 +10,8 @@ const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
 let _oskA11yApplicationsSettings;
 let backup_lastDeviceIsTouchScreen;
 let backup_relayout;
+let backup_touchMode;
+let currentSeat;
 let _indicator;
 let settings;
 
@@ -27,13 +29,11 @@ let OSKIndicator = GObject.registerClass(
 
       this.add_child(icon);
 
-      this.connect("button-press-event", function (actor, event) {
+      this.connect("button-press-event", function (_actor, event) {
         let button = event.get_button();
 
         if (button == 1) {
-          if (Main.keyboard._keyboard._keyboardVisible) return Main.keyboard.close();
-
-          Main.keyboard.open(Main.layoutManager.bottomIndex);
+          toggleOSK();
         }
         if (button == 3) {
           ExtensionUtils.openPrefs();
@@ -41,13 +41,17 @@ let OSKIndicator = GObject.registerClass(
       });
 
       this.connect("touch-event", function () {
-        if (Main.keyboard._keyboard._keyboardVisible) return Main.keyboard.close();
-
-        Main.keyboard.open(Main.layoutManager.bottomIndex);
+        toggleOSK();
       });
     }
   }
 );
+
+function toggleOSK() {
+  if (Main.keyboard._keyboard._keyboardVisible) return Main.keyboard.close();
+
+  Main.keyboard.open(Main.layoutManager.bottomIndex);
+}
 
 // Overrides
 function override_lastDeviceIsTouchScreen() {
@@ -74,51 +78,75 @@ function override_relayout() {
   }
 }
 
-
 function enable_overrides() {
   Keyboard.Keyboard.prototype["_relayout"] = override_relayout;
-  Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] = override_lastDeviceIsTouchScreen;
+  Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
+    override_lastDeviceIsTouchScreen;
 
   // Unregister original osk layouts resource file
-  const defaultLayouts = Gio.Resource.load(
-      (GLib.getenv('JHBUILD_PREFIX') || '/usr') +
-      '/share/gnome-shell/gnome-shell-osk-layouts.gresource');
-  defaultLayouts._unregister();
+  getDefaultLayouts()._unregister();
 
-  const modifiedLayoutsPath = Me.dir.get_child('data')
-      .get_child('gnome-shell-osk-layouts.gresource').get_path();
   // Register modified osk layouts resource file
-  const modifiedLayouts = Gio.Resource.load(modifiedLayoutsPath);
-  modifiedLayouts._register();
+  getModifiedLayouts()._register();
 }
 
 function disable_overrides() {
   Keyboard.Keyboard.prototype["_relayout"] = backup_relayout;
-  Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] = backup_lastDeviceIsTouchScreen;
+  Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
+    backup_lastDeviceIsTouchScreen;
 
-  const modifiedLayoutsPath = Me.dir.get_child('data')
-      .get_child('gnome-shell-osk-layouts.gresource').get_path();
   // Unregister modified osk layouts resource file
-  const modifiedOskLayouts = Gio.Resource.load(modifiedLayoutsPath);
-  modifiedOskLayouts._unregister();
+  getModifiedLayouts()._unregister();
 
   // Register original osk layouts resource file
-  const defaultLayouts = Gio.Resource.load(
-      (GLib.getenv('JHBUILD_PREFIX') || '/usr') +
-      '/share/gnome-shell/gnome-shell-osk-layouts.gresource');
-  defaultLayouts._register();
+  getDefaultLayouts()._register();
+}
+
+function getModifiedLayouts() {
+  const modifiedLayoutsPath = Me.dir
+    .get_child("data")
+    .get_child("gnome-shell-osk-layouts.gresource")
+    .get_path();
+  return Gio.Resource.load(modifiedLayoutsPath);
+}
+
+function getDefaultLayouts() {
+  return Gio.Resource.load(
+    (GLib.getenv("JHBUILD_PREFIX") || "/usr") +
+      "/share/gnome-shell/gnome-shell-osk-layouts.gresource"
+  );
+}
+
+// In case the keyboard is currently disabled in accessability settings, attempting to _destroyKeyboard() yields a TypeError ("TypeError: this.actor is null")
+// This function proofs this condition, which would be used in the parent function to determin whether to run _setupKeyboard
+function tryDestroyKeyboard() {
+  try {
+    Main.keyboard._destroyKeyboard();
+  } catch (e) {
+    if (e instanceof TypeError) {
+      return false;
+    } else {
+      // Something different happened
+      throw e;
+    }
+  }
+  return true;
 }
 
 // Extension
 function init() {
   backup_relayout = Keyboard.Keyboard.prototype["_relayout"];
 
-  backup_lastDeviceIsTouchScreen = Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
+  backup_lastDeviceIsTouchScreen =
+    Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
+
+  currentSeat = Clutter.get_default_backend().get_default_seat();
+  backup_touchMode = currentSeat.get_touch_mode;
 }
 
 function enable() {
   settings = ExtensionUtils.getSettings(
-      "org.gnome.shell.extensions.improvedosk"
+    "org.gnome.shell.extensions.improvedosk"
   );
   _oskA11yApplicationsSettings = new Gio.Settings({
     schema_id: A11Y_APPLICATIONS_SCHEMA,
@@ -132,19 +160,11 @@ function enable() {
     Main.panel.addToStatusArea("OSKIndicator", _indicator);
   }
 
-  let KeyboardIsSetup = true;
-  try {
-    Main.keyboard._destroyKeyboard();
-  } catch (e) {
-    if (e instanceof TypeError) {
-      // In case the keyboard is currently disabled in accessability settings, attempting to _destroyKeyboard() yields a TypeError ("TypeError: this.actor is null")
-      // This doesn't affect functionality, so proceed as usual. The only difference is that we do not automatically _setupKeyboard at the end of this enable() (let the user enable the keyboard in accessability settings)
-      KeyboardIsSetup = false;
-    } else {
-      // Something different happened
-      throw e;
-    }
+  if (settings.get_boolean("force-touch-input")) {
+    currentSeat.get_touch_mode = () => true;
   }
+
+  let KeyboardIsSetup = tryDestroyKeyboard();
 
   enable_overrides();
 
@@ -155,6 +175,14 @@ function enable() {
     } else if (_indicator !== null) {
       _indicator.destroy();
       _indicator = null;
+    }
+  });
+
+  settings.connect("changed::force-touch-input", function () {
+    if (settings.get_boolean("force-touch-input")) {
+      currentSeat.get_touch_mode = () => true;
+    } else {
+      currentSeat.get_touch_mode = backup_touchMode;
     }
   });
 
@@ -171,19 +199,9 @@ function enable() {
 function disable() {
   Main.layoutManager.removeChrome(Main.layoutManager.keyboardBox);
 
-  let KeyboardIsSetup = true;
-  try {
-    Main.keyboard._destroyKeyboard();
-  } catch (e) {
-    if (e instanceof TypeError) {
-      // In case the keyboard is currently disabled in accessability settings, attempting to _destroyKeyboard() yields a TypeError ("TypeError: this.actor is null")
-      // This doesn't affect functionality, so proceed as usual. The only difference is that we do not automatically _setupKeyboard at the end of this enable() (let the user enable the keyboard in accessability settings)
-      KeyboardIsSetup = false;
-    } else {
-      // Something different happened
-      throw e;
-    }
-  }
+  currentSeat.get_touch_mode = backup_touchMode;
+
+  let KeyboardIsSetup = tryDestroyKeyboard();
 
   // Remove indicator if it exists
   if (_indicator instanceof OSKIndicator) {
