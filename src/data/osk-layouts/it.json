@@ -161,7 +161,8 @@
         ],
         [
           {
-            "action": "levelSwitch",
+            "action": "modifier",
+            "keyval": "0xffe1",
             "iconName": "keyboard-shift-symbolic",
             "level": 1,
             "width": 1.5
@@ -224,7 +225,8 @@
             "keyval": "0xff52"
           },
           {
-            "action": "levelSwitch",
+            "action": "modifier",
+            "keyval": "0xffe1",
             "iconName": "keyboard-shift-symbolic",
             "level": 1,
             "width": 2
@@ -440,7 +442,8 @@
         ],
         [
           {
-            "action": "levelSwitch",
+            "action": "modifier",
+            "keyval": "0xffe1",
             "iconName": "keyboard-shift-symbolic",
             "level": 0,
             "width": 1.5
@@ -503,7 +506,8 @@
             "keyval": "0xff52"
           },
           {
-            "action": "levelSwitch",
+            "action": "modifier",
+            "keyval": "0xffe1",
             "iconName": "keyboard-shift-symbolic",
             "level": 0,
             "width": 2
