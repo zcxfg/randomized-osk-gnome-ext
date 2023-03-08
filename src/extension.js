@@ -12,6 +12,8 @@ let _oskA11yApplicationsSettings;
 let backup_lastDeviceIsTouchScreen;
 let backup_relayout;
 let backup_addRowKeys;
+let backup_toggleModifier;
+let backup_setActiveLayer;
 let backup_touchMode;
 let currentSeat;
 let _indicator;
@@ -80,8 +82,6 @@ function override_relayout() {
   }
 }
 
-// Bulk of this method remains unchanged, except for 'released' event handler for levelSwitch buttons.
-// Overriding it to ensure numbers layer properly latches
 function override_addRowKeys(keys, layout) {
   for (let i = 0; i < keys.length; ++i) {
     const key = keys[i];
@@ -113,7 +113,12 @@ function override_addRowKeys(keys, layout) {
         } else if (key.action === 'emoji') {
           this._toggleEmoji();
         } else if (key.action === 'modifier') {
-          this._toggleModifier(key.keyval);
+          // === Override starts here ===
+
+          // Pass the whole key object to allow switching layers on "Shift" press
+          this._toggleModifier(key);
+
+          // === Override ends here ===
         } else if (key.action === 'delete') {
           this._toggleDelete(true);
           this._toggleDelete(false);
@@ -132,17 +137,9 @@ function override_addRowKeys(keys, layout) {
       });
     }
 
-    if (key.action === 'levelSwitch' &&
-        key.iconName === 'keyboard-shift-symbolic') {
-      layout.shiftKeys.push(button);
-      if (key.level === 1) {
-        button.connect('long-press', () => {
-          this._setActiveLayer(key.level);
-          this._setLatched(true);
-          this._longPressed = true;
-        });
-      }
-    }
+    // === Override starts here ===
+    if (key.iconName === 'keyboard-shift-symbolic') layout.shiftKeys.push(button);
+    // === Override ends here ===
 
     if (key.action === 'delete') {
       button.connect('long-press',
@@ -162,8 +159,52 @@ function override_addRowKeys(keys, layout) {
   }
 }
 
+function override_toggleModifier(key) {
+  const { keyval, level } = key;
+  const SHIFT_KEYVAL = '0xffe1';
+  const isActive = this._modifiers.has(keyval);
+
+  if (keyval === SHIFT_KEYVAL) this._setActiveLayer(level);
+
+  this._setModifierEnabled(keyval, !isActive);
+}
+
+function override_setActiveLayer(activeLevel) {
+  let activeGroupName = this._keyboardController.getCurrentGroup();
+  let layers = this._groups[activeGroupName];
+  let currentPage = layers[activeLevel];
+
+  if (this._currentPage == currentPage) {
+    this._updateCurrentPageVisible();
+    return;
+  }
+
+  if (this._currentPage != null) {
+    this._setCurrentLevelLatched(this._currentPage, false);
+    this._currentPage.disconnect(this._currentPage._destroyID);
+    this._currentPage.hide();
+    delete this._currentPage._destroyID;
+  }
+  // === Override starts here ===
+
+  // Don't unlatch modifiers if switching to lower or upper case layer
+  if (activeLevel > 1) this._disableAllModifiers();
+
+  // === Override ends here ===
+  this._currentPage = currentPage;
+  this._currentPage._destroyID = this._currentPage.connect('destroy', () => {
+    this._currentPage = null;
+  });
+  this._updateCurrentPageVisible();
+  this._aspectContainer.setRatio(...this._currentPage.getRatio());
+  this._emojiSelection.setRatio(...this._currentPage.getRatio());
+
+}
+
 function enable_overrides() {
   Keyboard.Keyboard.prototype["_relayout"] = override_relayout;
+  Keyboard.Keyboard.prototype["_toggleModifier"] = override_toggleModifier;
+  Keyboard.Keyboard.prototype["_setActiveLayer"] = override_setActiveLayer;
   Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
@@ -177,6 +218,8 @@ function enable_overrides() {
 
 function disable_overrides() {
   Keyboard.Keyboard.prototype["_relayout"] = backup_relayout;
+  Keyboard.Keyboard.prototype["_toggleModifier"] = backup_toggleModifier;
+  Keyboard.Keyboard.prototype["_setActiveLayer"] = backup_setActiveLayer;
   Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
@@ -222,6 +265,8 @@ function tryDestroyKeyboard() {
 // Extension
 function init() {
   backup_relayout = Keyboard.Keyboard.prototype["_relayout"];
+  backup_toggleModifier = Keyboard.Keyboard.prototype["_toggleModifier"];
+  backup_setActiveLayer = Keyboard.Keyboard.prototype["_setActiveLayer"];
   backup_addRowKeys = Keyboard.Keyboard.prototype["_addRowKeys"];
 
   backup_lastDeviceIsTouchScreen =
