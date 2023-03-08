@@ -2,6 +2,7 @@
 const { Gio, GLib, St, Clutter, GObject } = imports.gi;
 const Main = imports.ui.main;
 const Keyboard = imports.ui.keyboard;
+const Key = Keyboard.Key;
 const PanelMenu = imports.ui.panelMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -10,6 +11,7 @@ const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
 let _oskA11yApplicationsSettings;
 let backup_lastDeviceIsTouchScreen;
 let backup_relayout;
+let backup_addRowKeys;
 let backup_touchMode;
 let currentSeat;
 let _indicator;
@@ -78,8 +80,91 @@ function override_relayout() {
   }
 }
 
+// Bulk of this method remains unchanged, except for 'released' event handler for levelSwitch buttons.
+// Overriding it to ensure numbers layer properly latches
+function override_addRowKeys(keys, layout) {
+  for (let i = 0; i < keys.length; ++i) {
+    const key = keys[i];
+    const {strings} = key;
+    const commitString = strings?.shift();
+
+    let button = new Key({
+      commitString,
+      label: key.label,
+      iconName: key.iconName,
+      keyval: key.keyval,
+    }, strings);
+
+    if (key.width !== null)
+      button.setWidth(key.width);
+
+    if (key.action !== 'modifier') {
+      button.connect('commit', (_actor, keyval, str) => {
+        this._commitAction(keyval, str);
+      });
+    }
+
+    if (key.action !== null) {
+      button.connect('released', () => {
+        if (key.action === 'hide') {
+          this.close();
+        } else if (key.action === 'languageMenu') {
+          this._popupLanguageMenu(button);
+        } else if (key.action === 'emoji') {
+          this._toggleEmoji();
+        } else if (key.action === 'modifier') {
+          this._toggleModifier(key.keyval);
+        } else if (key.action === 'delete') {
+          this._toggleDelete(true);
+          this._toggleDelete(false);
+        } else if (!this._longPressed && key.action === 'levelSwitch') {
+          this._setActiveLayer(key.level);
+          // === Override starts here ===
+
+          // Ensure numbers layer latches
+          const isNumbersLayer = key.level === 2;
+          this._setLatched(isNumbersLayer);
+
+          // === Override ends here ===
+        }
+
+        this._longPressed = false;
+      });
+    }
+
+    if (key.action === 'levelSwitch' &&
+        key.iconName === 'keyboard-shift-symbolic') {
+      layout.shiftKeys.push(button);
+      if (key.level === 1) {
+        button.connect('long-press', () => {
+          this._setActiveLayer(key.level);
+          this._setLatched(true);
+          this._longPressed = true;
+        });
+      }
+    }
+
+    if (key.action === 'delete') {
+      button.connect('long-press',
+          () => this._toggleDelete(true));
+    }
+
+    if (key.action === 'modifier') {
+      let modifierKeys = this._modifierKeys[key.keyval] || [];
+      modifierKeys.push(button);
+      this._modifierKeys[key.keyval] = modifierKeys;
+    }
+
+    if (key.action || key.keyval)
+      button.keyButton.add_style_class_name('default-key');
+
+    layout.appendKey(button, button.keyButton.keyWidth);
+  }
+}
+
 function enable_overrides() {
   Keyboard.Keyboard.prototype["_relayout"] = override_relayout;
+  Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
 
@@ -92,6 +177,7 @@ function enable_overrides() {
 
 function disable_overrides() {
   Keyboard.Keyboard.prototype["_relayout"] = backup_relayout;
+  Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
 
@@ -136,6 +222,7 @@ function tryDestroyKeyboard() {
 // Extension
 function init() {
   backup_relayout = Keyboard.Keyboard.prototype["_relayout"];
+  backup_addRowKeys = Keyboard.Keyboard.prototype["_addRowKeys"];
 
   backup_lastDeviceIsTouchScreen =
     Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
