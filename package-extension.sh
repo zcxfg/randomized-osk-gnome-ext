@@ -24,7 +24,7 @@ cp LICENSE README.md src/*.js src/metadata.json src/stylesheet.css dist/
 mkdir dist/data
 cp src/data/gnome-shell-osk-layouts.gresource dist/data/
 mkdir dist/schemas
-cp src/schemas/gschemas.compiled dist/schemas/
+cp src/schemas/gschemas.compiled src/schemas/org.gnome.shell.extensions.improvedosk.gschema.xml dist/schemas/
 
 # Add necessary extension files to archive
 cd dist/ || exit
