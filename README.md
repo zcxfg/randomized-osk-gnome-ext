@@ -39,7 +39,7 @@ After enabling extension, log out and back in to reload Gnome Shell.
 
 ### My language layout doesn't have the additional keys.
 If the layout you're using does not have the extended keys, let me know, and I'll add them.
-Or, feel free to modify it yourself (see [/src/data/osk-layouts](https://github.com/nick-shmyrev/improved-osk-gnome-ext/tree/gnome_43_rewrite/src/data/osk-layouts) dir) and make a PR.
+Or, feel free to modify it yourself (see [/src/data/osk-layouts](https://github.com/nick-shmyrev/improved-osk-gnome-ext/tree/master/src/data) dir) and make a PR.
 
 ### Some symbols are missing...
 The keyboard uses unicode characters, try installing `ttf-symbola` on archlinux (AUR)
