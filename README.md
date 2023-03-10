@@ -41,6 +41,11 @@ After enabling extension, log out and back in to reload Gnome Shell.
 If the layout you're using does not have the extended keys, let me know, and I'll add them.
 Or, feel free to modify it yourself (see [/src/data/osk-layouts](https://github.com/nick-shmyrev/improved-osk-gnome-ext/tree/master/src/data) dir) and make a PR.
 
+### How do I make a custom layout?
+You'll need to follow the manual installation process from [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#from-source-code),
+but before running `package-extension.sh` you'll have to make changes to your preferred layout
+(see [osk-layouts](https://github.com/nick-shmyrev/improved-osk-gnome-ext/tree/master/src/data/osk-layouts)), then continue with the installation process.
+
 ### Some symbols are missing...
 The keyboard uses unicode characters, try installing `ttf-symbola` on archlinux (AUR)
 or `ttf-ancient-fonts-symbola` on ubuntu/debian
