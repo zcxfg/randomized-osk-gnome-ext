@@ -15,6 +15,7 @@ let backup_addRowKeys;
 let backup_toggleModifier;
 let backup_setActiveLayer;
 let backup_touchMode;
+let backup_getCurrentGroup;
 let currentSeat;
 let _indicator;
 let settings;
@@ -198,7 +199,22 @@ function override_setActiveLayer(activeLevel) {
   this._updateCurrentPageVisible();
   this._aspectContainer.setRatio(...this._currentPage.getRatio());
   this._emojiSelection.setRatio(...this._currentPage.getRatio());
+}
 
+function override_getCurrentGroup() {
+  // Special case for Korean, if Hangul mode is disabled, use the 'us' keymap
+  if (this._currentSource.id === 'hangul') {
+      const inputSourceManager = InputSourceManager.getInputSourceManager();
+      const currentSource = inputSourceManager.currentSource;
+      let prop;
+      for (let i = 0; (prop = currentSource.properties.get(i)) !== null; ++i) {
+          if (prop.get_key() === 'InputMode' &&
+              prop.get_prop_type() === IBus.PropType.TOGGLE &&
+              prop.get_state() !== IBus.PropState.CHECKED)
+              return 'us';
+      }
+  }
+  return this._currentSource.xkbId;
 }
 
 function enable_overrides() {
@@ -208,6 +224,8 @@ function enable_overrides() {
   Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
+  Keyboard.KeyboardController.prototype["getCurrentGroup"] = 
+    override_getCurrentGroup;
 
   // Unregister original osk layouts resource file
   getDefaultLayouts()._unregister();
@@ -223,6 +241,8 @@ function disable_overrides() {
   Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
+  Keyboard.KeyboardController.prototype["getCurrentGroup"] = 
+    backup_getCurrentGroup;
 
   // Unregister modified osk layouts resource file
   getModifiedLayouts()._unregister();
@@ -271,6 +291,9 @@ function init() {
 
   backup_lastDeviceIsTouchScreen =
     Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
+
+  backup_getCurrentGroup =
+    Keyboard.KeyboardController.getCurrentGroup;
 
   currentSeat = Clutter.get_default_backend().get_default_seat();
   backup_touchMode = currentSeat.get_touch_mode;
