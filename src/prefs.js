@@ -159,14 +159,5 @@ function buildPrefsWidget() {
   );
   prefsWidget.attach(inputShowStatusbarIcon, 1, 5, 1, 1);
 
-  if (typeof prefsWidget.show_all === "function") {
-    // Adds backward compatibility with Gnome 38
-    prefsWidget.show_all();
-  } else {
-    // Gnome versions >= 40
-    // https://gjs-docs.gnome.org/gtk40/gtk.widget#method-show
-    prefsWidget.show();
-  }
-
   return prefsWidget;
 }
