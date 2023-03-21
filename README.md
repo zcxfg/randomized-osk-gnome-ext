@@ -8,6 +8,7 @@ Features:
 * Configurable keyboard size (landscape/portrait)
 * Statusbar indicator to toggle keyboard
 * Works in Gnome password modals
+* Works on Gnome's login screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#as-a-system-wide-extension) for instructions)
 
 Currently, the following layouts have extended keys: CH+FR, CH, DE, ES, FR, IT, RU, UA, US.
 
@@ -34,6 +35,15 @@ gnome-extensions enable improvedosk@nick-shmyrev.dev
 ```
 
 After enabling extension, log out and back in to reload Gnome Shell.
+
+### As a system-wide extension
+**This is an experimental feature**, see issue [#41](https://github.com/nick-shmyrev/improved-osk-gnome-ext/issues/41) for details and bug reports! 
+
+Installing as a system-wide extension allows Improved OSK to be used on Gnome's login screen, as well as within the user session.
+
+To install as a system-wide extension, follow this [guide](https://help.gnome.org/admin/system-admin-guide/stable/extensions-enable.html.en), or use the `install-as-global-extension.sh` script.
+If it's installed, and the keyboards doesn't show up on login screen, tap on accessibility options in upper right corner of the screen, and enable "Screen Keyboard".
+
 
 ## FAQ
 
