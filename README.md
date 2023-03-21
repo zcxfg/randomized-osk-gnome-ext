@@ -64,21 +64,7 @@ or disable extension version check and then install from [extensions.gnome.org](
 gsettings set org.gnome.shell disable-extension-version-validation true
 ```
 
-Here are some of the test cases:
-- OSK shows up when you click/tap text inputs and/or terminal window
-- OSK can type lowercase chars
-- Tapping "Shift" switches OSK to uppercase layer
-- OSK can type uppercase chars
-- After typing an uppercase char, OSK switches back to lowercase layer
-- Once switched to Numbers layer, it stays latched until user switches to another layer
-- Long-pressing characters like "1" shows a popup with additional chars, typing those chars works
-- Tapping "Ctrl", "Alt", "Shift" adds highlight to those buttons
-- "Ctrl" and/or "Alt" remain latched when "Shift" is toggled on/off
-- Key combinations like "Ctrl + C", "Ctrl + X", "Ctrl + V", "Ctrl + A", "Ctrl + Z", "Ctrl + Shift + Z", "Ctrl + Shift + V" (in terminal), "Alt + Tab" work as expected
-- Esc, F1-12 keys work as expected
-- OSK works in Gnome password modal
-- OSK works on lock-screen
-- OSK settings for landscape/portrait height work
+See [TEST_CASES](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/TEST_CASES.md) for test cases.
 
 ### Do I need to enable the OSK in Gnome accessibility settings?
 By default, the keyboard will pop up on touch input events.
