@@ -358,6 +358,9 @@ function enable() {
 }
 
 function disable() {
+  // `unlock-dialog` session-mode is required to allow this extension
+  // to run in Gnome's screensaver login dialog
+
   Main.layoutManager.removeChrome(Main.layoutManager.keyboardBox);
 
   currentSeat.get_touch_mode = backup_touchMode;
