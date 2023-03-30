@@ -41,8 +41,30 @@ After enabling extension, log out and back in to reload Gnome Shell.
 
 Installing as a system-wide extension allows Improved OSK to be used on Gnome's login screen, as well as within the user session.
 
-To install as a system-wide extension, follow this [guide](https://help.gnome.org/admin/system-admin-guide/stable/extensions-enable.html.en), or use the `install-as-global-extension.sh` script.
-If it's installed, and the keyboards doesn't show up on login screen, tap on accessibility options in upper right corner of the screen, and enable "Screen Keyboard".
+To install as a system-wide extension:
+
+1. Remove the extension if you have it installed:
+```console
+gnome-extensions uninstall improvedosk@nick-shmyrev.dev
+```
+
+2. Clone this repo:
+```console
+git clone https://github.com/nick-shmyrev/improved-osk-gnome-ext.git
+```
+
+3. Add `"gdm"` to `session-modes` array in `metadata.json` file. The result should look something like this:
+```json
+{
+  // rest of the metadata.json properties...
+  "session-modes": ["gdm", "user", "unlock-dialog"]
+}
+```
+4. Run `/package-extension.sh` script to package extension
+
+5. Then follow this [guide](https://help.gnome.org/admin/system-admin-guide/stable/extensions-enable.html.en), or use the `install-as-global-extension.sh` script.
+
+If extension is installed, but the keyboards doesn't show up on login screen, tap on accessibility options in upper right corner of the screen, and enable "Screen Keyboard".
 
 
 ## FAQ
