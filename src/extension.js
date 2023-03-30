@@ -20,6 +20,10 @@ let currentSeat;
 let _indicator;
 let settings;
 
+function isInUnlockDialogMode() {
+  return Main.sessionMode.currentMode === 'unlock-dialog';
+}
+
 // Indicator
 let OSKIndicator = GObject.registerClass(
   { GTypeName: "OSKIndicator" },
@@ -40,7 +44,9 @@ let OSKIndicator = GObject.registerClass(
         if (button == 1) {
           toggleOSK();
         }
-        if (button == 3) {
+
+        // Don't open extension prefs if in unlock-dialog session mode
+        if (button == 3 && !isInUnlockDialogMode()) {
           ExtensionUtils.openPrefs();
         }
       });
