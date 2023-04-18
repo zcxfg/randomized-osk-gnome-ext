@@ -220,13 +220,11 @@ function enable_overrides() {
   Keyboard.Keyboard.prototype["_toggleModifier"] = override_toggleModifier;
   Keyboard.Keyboard.prototype["_setActiveLayer"] = override_setActiveLayer;
   Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
+
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
 
-  // Overriding a method on instantiated Keyboard object instead of a class definition
-  // as a workaround for built-in OSK breaking in unlock-dialog session mode
-  // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/pull/36#pullrequestreview-1333498902 for details
-  Main.keyboard._keyboard._keyboardController["getCurrentGroup"] =
+  Keyboard.KeyboardController.prototype["getCurrentGroup"] =
     override_getCurrentGroup;
 
   // Unregister original osk layouts resource file
@@ -241,13 +239,11 @@ function disable_overrides() {
   Keyboard.Keyboard.prototype["_toggleModifier"] = backup_toggleModifier;
   Keyboard.Keyboard.prototype["_setActiveLayer"] = backup_setActiveLayer;
   Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
+
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
 
-  // Restoring a method on instantiated Keyboard object instead of a class definition
-  // as a workaround for built-in OSK breaking in unlock-dialog session mode
-  // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/pull/36#pullrequestreview-1333498902 for details
-  Main.keyboard._keyboard._keyboardController["getCurrentGroup"] =
+  Keyboard.KeyboardController.prototype["getCurrentGroup"] =
     backup_getCurrentGroup;
 
   // Unregister modified osk layouts resource file
@@ -298,11 +294,8 @@ function init() {
   backup_lastDeviceIsTouchScreen =
     Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
 
-  // Backing up a method of an instantiated Keyboard object instead of KeyboardController class method
-  // as a workaround for built-in OSK breaking in unlock-dialog session mode
-  // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/pull/36#pullrequestreview-1333498902 for details
   backup_getCurrentGroup =
-      Main.keyboard._keyboard._keyboardController["getCurrentGroup"];
+    Keyboard.KeyboardController.prototype["getCurrentGroup"];
 
   currentSeat = Clutter.get_default_backend().get_default_seat();
   backup_touchMode = currentSeat.get_touch_mode;
