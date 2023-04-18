@@ -8,7 +8,7 @@ Features:
 * Configurable keyboard size (landscape/portrait)
 * Statusbar indicator to toggle keyboard
 * Works in Gnome password modals
-* Works on Lock screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#using-improved-osk-on-gnomes-lock-screen) for instructions) for instructions)
+* Works on Lock screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#using-improved-osk-on-gnomes-lock-screen) for instructions)
 * Works on Login screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#as-a-system-wide-extension) for instructions)
 
 Currently, the following layouts have extended keys: CH+FR, CH, DE, HU, ES, FR, IT, RU, UA, US.
@@ -79,13 +79,14 @@ do not allow extensions to connect to keyboard signals in `unlock-dialog` sessio
 For this reason, this extension is shipped with `unlock-dialog` session mode disabled by default.
 Enable it at your own risk.
 
-If you still want to enable it, simply add `session-modes` array with `"user"` and `unlock-dialog` to `metadata.json` file. The result should look something like this:
+If you still want to enable it, simply add `session-modes` array with `"user"` and `"unlock-dialog"` values to `metadata.json` file. The result should look something like this:
 ```js
 {
   // rest of the metadata.json properties...
-  "session-modes": ["user", "gdm"]
+  "session-modes": ["user", "unlock-dialog"]
 }
 ```
+If you're already using `"gdm"` session mode, keep it and the `"user"` mode in the `"session-modes"` array and just add `"unlock-dialog"` as the third value.
 
 ### My language layout doesn't have the additional keys.
 If the layout you're using does not have the extended keys, let me know, and I'll add them.
