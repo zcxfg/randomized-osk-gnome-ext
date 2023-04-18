@@ -54,7 +54,7 @@ gnome-extensions uninstall improvedosk@nick-shmyrev.dev
 git clone https://github.com/nick-shmyrev/improved-osk-gnome-ext.git
 ```
 
-3. Add `"gdm"` to `session-modes` array in `metadata.json` file. The result should look something like this:
+3. Add `session-modes` array with `"user"` and `"gdm"` values to `metadata.json` file. The result should look something like this:
 ```js
 {
   // rest of the metadata.json properties...
@@ -79,11 +79,11 @@ do not allow extensions to connect to keyboard signals in `unlock-dialog` sessio
 For this reason, this extension is shipped with `unlock-dialog` session mode disabled by default.
 Enable it at your own risk.
 
-If you still want to enable it, simply add `unlock-dialog` value to `session-modes` array in `metadata.json` file. The result should look something like this:
+If you still want to enable it, simply add `session-modes` array with `"user"` and `unlock-dialog` to `metadata.json` file. The result should look something like this:
 ```js
 {
   // rest of the metadata.json properties...
-  "session-modes": ["user", "gdm", "unlock-dialog"]
+  "session-modes": ["user", "gdm"]
 }
 ```
 

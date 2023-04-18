@@ -6,6 +6,5 @@
   ],
   "url": "https://github.com/nick-shmyrev/improved-osk-gnome-ext",
   "uuid": "improvedosk@nick-shmyrev.dev",
-  "version": 13,
-  "session-modes": ["user"]
+  "version": 13
 }
