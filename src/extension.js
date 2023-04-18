@@ -120,33 +120,25 @@ function override_addRowKeys(keys, layout) {
         } else if (key.action === 'emoji') {
           this._toggleEmoji();
         } else if (key.action === 'modifier') {
-          // === Override starts here ===
-
           // Pass the whole key object to allow switching layers on "Shift" press
           this._toggleModifier(key);
 
-          // === Override ends here ===
         } else if (key.action === 'delete') {
           this._toggleDelete(true);
           this._toggleDelete(false);
         } else if (!this._longPressed && key.action === 'levelSwitch') {
           this._setActiveLayer(key.level);
-          // === Override starts here ===
 
           // Ensure numbers layer latches
           const isNumbersLayer = key.level === 2;
           this._setLatched(isNumbersLayer);
-
-          // === Override ends here ===
         }
 
         this._longPressed = false;
       });
     }
 
-    // === Override starts here ===
     if (key.iconName === 'keyboard-shift-symbolic') layout.shiftKeys.push(button);
-    // === Override ends here ===
 
     if (key.action === 'delete') {
       button.connect('long-press',
@@ -230,7 +222,11 @@ function enable_overrides() {
   Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
-  Keyboard.KeyboardController.prototype["getCurrentGroup"] = 
+
+  // Overriding a method on instantiated Keyboard object instead of a class definition
+  // as a workaround for built-in OSK breaking in unlock-dialog session mode
+  // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/pull/36#pullrequestreview-1333498902 for details
+  Main.keyboard._keyboard._keyboardController["getCurrentGroup"] =
     override_getCurrentGroup;
 
   // Unregister original osk layouts resource file
@@ -247,7 +243,11 @@ function disable_overrides() {
   Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
-  Keyboard.KeyboardController.prototype["getCurrentGroup"] = 
+
+  // Restoring a method on instantiated Keyboard object instead of a class definition
+  // as a workaround for built-in OSK breaking in unlock-dialog session mode
+  // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/pull/36#pullrequestreview-1333498902 for details
+  Main.keyboard._keyboard._keyboardController["getCurrentGroup"] =
     backup_getCurrentGroup;
 
   // Unregister modified osk layouts resource file
@@ -298,8 +298,11 @@ function init() {
   backup_lastDeviceIsTouchScreen =
     Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
 
+  // Backing up a method of an instantiated Keyboard object instead of KeyboardController class method
+  // as a workaround for built-in OSK breaking in unlock-dialog session mode
+  // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/pull/36#pullrequestreview-1333498902 for details
   backup_getCurrentGroup =
-    Keyboard.KeyboardController.getCurrentGroup;
+      Main.keyboard._keyboard._keyboardController["getCurrentGroup"];
 
   currentSeat = Clutter.get_default_backend().get_default_seat();
   backup_touchMode = currentSeat.get_touch_mode;
@@ -358,9 +361,6 @@ function enable() {
 }
 
 function disable() {
-  // `unlock-dialog` session-mode is required to allow this extension
-  // to run in Gnome's screensaver login dialog
-
   Main.layoutManager.removeChrome(Main.layoutManager.keyboardBox);
 
   currentSeat.get_touch_mode = backup_touchMode;

@@ -8,9 +8,10 @@ Features:
 * Configurable keyboard size (landscape/portrait)
 * Statusbar indicator to toggle keyboard
 * Works in Gnome password modals
-* Works on Gnome's login screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#as-a-system-wide-extension) for instructions)
+* Works on Lock screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#using-improved-osk-on-gnomes-lock-screen) for instructions) for instructions)
+* Works on Gnome's Login screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#as-a-system-wide-extension) for instructions)
 
-Currently, the following layouts have extended keys: CH+FR, CH, DE, ES, FR, IT, RU, UA, US.
+Currently, the following layouts have extended keys: CH+FR, CH, DE, HU, ES, FR, IT, RU, UA, US.
 
 ![Screenshot](screenshots/1.png)
 
@@ -54,10 +55,10 @@ git clone https://github.com/nick-shmyrev/improved-osk-gnome-ext.git
 ```
 
 3. Add `"gdm"` to `session-modes` array in `metadata.json` file. The result should look something like this:
-```json
+```js
 {
   // rest of the metadata.json properties...
-  "session-modes": ["gdm", "user", "unlock-dialog"]
+  "session-modes": ["user", "gdm"]
 }
 ```
 4. Run `/package-extension.sh` script to package extension
@@ -68,6 +69,23 @@ If extension is installed, but the keyboards doesn't show up on login screen, ta
 
 
 ## FAQ
+
+### Using Improved OSK on Gnome's lock screen.
+This extension can also be used when screen is locked. 
+
+***Warning***: for this extension to work on lock screen, it needs `unlock-dialog` session mode to be enabled,
+however Gnome Shell Extension [review guidelines](https://gjs.guide/extensions/review-guidelines/review-guidelines.html#session-modes) 
+do not allow extensions to connect to keyboard signals in `unlock-dialog` session mode.
+For this reason, this extension is shipped with `unlock-dialog` session mode disabled by default.
+Enable it at your own risk.
+
+If you still want to enable it, simply add `unlock-dialog` value to `session-modes` array in `metadata.json` file. The result should look something like this:
+```js
+{
+  // rest of the metadata.json properties...
+  "session-modes": ["user", "gdm", "unlock-dialog"]
+}
+```
 
 ### My language layout doesn't have the additional keys.
 If the layout you're using does not have the extended keys, let me know, and I'll add them.
