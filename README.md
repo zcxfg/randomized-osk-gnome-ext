@@ -9,7 +9,7 @@ Features:
 * Statusbar indicator to toggle keyboard
 * Works in Gnome password modals
 * Works on Lock screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#using-improved-osk-on-gnomes-lock-screen) for instructions) for instructions)
-* Works on Gnome's Login screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#as-a-system-wide-extension) for instructions)
+* Works on Login screen (see [README](https://github.com/nick-shmyrev/improved-osk-gnome-ext/blob/master/README.md#as-a-system-wide-extension) for instructions)
 
 Currently, the following layouts have extended keys: CH+FR, CH, DE, HU, ES, FR, IT, RU, UA, US.
 
