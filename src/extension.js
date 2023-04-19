@@ -268,8 +268,8 @@ function getDefaultLayouts() {
   );
 }
 
-// In case the keyboard is currently disabled in accessability settings, attempting to _destroyKeyboard() yields a TypeError ("TypeError: this.actor is null")
-// This function proofs this condition, which would be used in the parent function to determin whether to run _setupKeyboard
+// In case the keyboard is currently disabled in accessibility settings, attempting to _destroyKeyboard() yields a TypeError ("TypeError: this.actor is null")
+// This function proofs this condition, which would be used in the parent function to determine whether to run _setupKeyboard
 function tryDestroyKeyboard() {
   try {
     Main.keyboard._destroyKeyboard();
