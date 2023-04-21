@@ -8,10 +8,13 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
 const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
+const KEY_RELEASE_TIMEOUT = 100;
+
 let _oskA11yApplicationsSettings;
 let backup_lastDeviceIsTouchScreen;
 let backup_relayout;
 let backup_addRowKeys;
+let backup_commitAction;
 let backup_toggleModifier;
 let backup_setActiveLayer;
 let backup_touchMode;
@@ -19,6 +22,7 @@ let backup_getCurrentGroup;
 let currentSeat;
 let _indicator;
 let settings;
+let keyReleaseTimeoutId;
 
 function isInUnlockDialogMode() {
   return Main.sessionMode.currentMode === 'unlock-dialog';
@@ -158,6 +162,38 @@ function override_addRowKeys(keys, layout) {
   }
 }
 
+async function override_commitAction(keyval, str) {
+  if (this._modifiers.size === 0 && str !== '' &&
+      keyval && this._oskCompletionEnabled) {
+    if (await Main.inputMethod.handleVirtualKey(keyval))
+      return;
+  }
+
+  if (str === '' || !Main.inputMethod.currentFocus ||
+      (keyval && this._oskCompletionEnabled) ||
+      this._modifiers.size > 0 ||
+      !this._keyboardController.commitString(str, true)) {
+    if (keyval !== 0) {
+      // If sending a key combination with a string char, use lowercase key value,
+      // otherwise extension can't reliably input "Shift + [key]" combinations
+      // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/issues/38#issuecomment-1466599579
+      const keyvalToPress = str === '' ? keyval : Key.prototype._getKeyvalFromString(str.toLowerCase());
+
+      this._forwardModifiers(this._modifiers, Clutter.EventType.KEY_PRESS);
+      this._keyboardController.keyvalPress(keyvalToPress);
+      keyReleaseTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, KEY_RELEASE_TIMEOUT, () => {
+        this._keyboardController.keyvalRelease(keyvalToPress);
+        this._forwardModifiers(this._modifiers, Clutter.EventType.KEY_RELEASE);
+        this._disableAllModifiers();
+        return GLib.SOURCE_REMOVE;
+      });
+    }
+  }
+
+  if (!this._latched)
+    this._setActiveLayer(0);
+}
+
 function override_toggleModifier(key) {
   const { keyval, level } = key;
   const SHIFT_KEYVAL = '0xffe1';
@@ -220,6 +256,7 @@ function enable_overrides() {
   Keyboard.Keyboard.prototype["_toggleModifier"] = override_toggleModifier;
   Keyboard.Keyboard.prototype["_setActiveLayer"] = override_setActiveLayer;
   Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
+  Keyboard.Keyboard.prototype["_commitAction"] = override_commitAction;
 
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
@@ -239,6 +276,7 @@ function disable_overrides() {
   Keyboard.Keyboard.prototype["_toggleModifier"] = backup_toggleModifier;
   Keyboard.Keyboard.prototype["_setActiveLayer"] = backup_setActiveLayer;
   Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
+  Keyboard.Keyboard.prototype["_commitAction"] = backup_commitAction;
 
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
@@ -290,6 +328,7 @@ function init() {
   backup_toggleModifier = Keyboard.Keyboard.prototype["_toggleModifier"];
   backup_setActiveLayer = Keyboard.Keyboard.prototype["_setActiveLayer"];
   backup_addRowKeys = Keyboard.Keyboard.prototype["_addRowKeys"];
+  backup_commitAction = Keyboard.Keyboard.prototype["_commitAction"];
 
   backup_lastDeviceIsTouchScreen =
     Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
@@ -367,6 +406,11 @@ function disable() {
   }
 
   settings = null;
+
+  if (keyReleaseTimeoutId) {
+    GLib.Source.remove(keyReleaseTimeoutId);
+    keyReleaseTimeoutId = null;
+  }
 
   disable_overrides();
 
