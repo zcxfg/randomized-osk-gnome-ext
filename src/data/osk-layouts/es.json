@@ -256,6 +256,11 @@
           },
           {
             "action": "modifier",
+            "keyval": "0xffeb",
+            "label": "Super"
+          },
+          {
+            "action": "modifier",
             "keyval": "0xffe9",
             "label": "Alt"
           },
@@ -268,7 +273,7 @@
             "strings": [
               " "
             ],
-            "width": 4.5
+            "width": 3.5
           },
           {
             "action": "languageMenu",
@@ -551,6 +556,11 @@
           },
           {
             "action": "modifier",
+            "keyval": "0xffeb",
+            "label": "Super"
+          },
+          {
+            "action": "modifier",
             "keyval": "0xffe9",
             "label": "Alt"
           },
@@ -563,7 +573,7 @@
             "strings": [
               " "
             ],
-            "width": 4.5
+            "width": 3.5
           },
           {
             "action": "languageMenu",

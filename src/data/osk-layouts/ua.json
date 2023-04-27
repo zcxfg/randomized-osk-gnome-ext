@@ -219,13 +219,13 @@
           },
           {
             "action": "modifier",
-            "keyval": "0xffe9",
-            "label": "Alt"
+            "keyval": "0xffeb",
+            "label": "Super"
           },
           {
-            "strings": [
-              ","
-            ]
+            "action": "modifier",
+            "keyval": "0xffe9",
+            "label": "Alt"
           },
           {
             "strings": [
@@ -492,13 +492,13 @@
           },
           {
             "action": "modifier",
-            "keyval": "0xffe9",
-            "label": "Alt"
+            "keyval": "0xffeb",
+            "label": "Super"
           },
           {
-            "strings": [
-              ","
-            ]
+            "action": "modifier",
+            "keyval": "0xffe9",
+            "label": "Alt"
           },
           {
             "strings": [
