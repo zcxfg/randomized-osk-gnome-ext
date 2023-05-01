@@ -15,6 +15,7 @@ let backup_lastDeviceIsTouchScreen;
 let backup_relayout;
 let backup_addRowKeys;
 let backup_commitAction;
+let backup_toggleDelete;
 let backup_toggleModifier;
 let backup_setActiveLayer;
 let backup_touchMode;
@@ -194,6 +195,18 @@ async function override_commitAction(keyval, str) {
     this._setActiveLayer(0);
 }
 
+function override_toggleDelete(enabled) {
+  if (this._deleteEnabled === enabled) return;
+
+  this._deleteEnabled = enabled;
+
+  if (enabled) {
+    this._keyboardController.keyvalPress(Clutter.KEY_BackSpace);
+  } else {
+    this._keyboardController.keyvalRelease(Clutter.KEY_BackSpace);
+  }
+}
+
 function override_toggleModifier(key) {
   const { keyval, level } = key;
   const SHIFT_KEYVAL = '0xffe1';
@@ -257,6 +270,7 @@ function enable_overrides() {
   Keyboard.Keyboard.prototype["_setActiveLayer"] = override_setActiveLayer;
   Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
   Keyboard.Keyboard.prototype["_commitAction"] = override_commitAction;
+  Keyboard.Keyboard.prototype["_toggleDelete"] = override_toggleDelete;
 
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
@@ -277,6 +291,7 @@ function disable_overrides() {
   Keyboard.Keyboard.prototype["_setActiveLayer"] = backup_setActiveLayer;
   Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
   Keyboard.Keyboard.prototype["_commitAction"] = backup_commitAction;
+  Keyboard.Keyboard.prototype["_toggleDelete"] = backup_toggleDelete;
 
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
@@ -329,6 +344,7 @@ function init() {
   backup_setActiveLayer = Keyboard.Keyboard.prototype["_setActiveLayer"];
   backup_addRowKeys = Keyboard.Keyboard.prototype["_addRowKeys"];
   backup_commitAction = Keyboard.Keyboard.prototype["_commitAction"];
+  backup_toggleDelete = Keyboard.Keyboard.prototype["_toggleDelete"];
 
   backup_lastDeviceIsTouchScreen =
     Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
