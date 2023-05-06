@@ -10,7 +10,7 @@
 - Tapping "Ctrl", "Alt", "Super", "Shift" adds highlight to those buttons
 - "Ctrl", "Alt"  and/or "Super" remain latched when "Shift" is toggled on/off
 - Key combinations like "Ctrl + C", "Ctrl + X", "Ctrl + V", "Ctrl + A", "Ctrl + Z", "Ctrl + Shift + Z", "Ctrl + Shift + V" (in terminal), "Alt + Tab", "Super + A" work as expected
-- Esc, F1-12 keys work as expected
+- Esc, F1-12, Backspace keys work as expected
 - OSK doesn't switch to `us-extended` layout in terminal
 - OSK works in Gnome password modal
 - OSK works on lock screen screensaver
