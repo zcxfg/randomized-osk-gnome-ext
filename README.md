@@ -119,3 +119,7 @@ uses `ibus` package, make sure you have it installed.
 ### Some symbols are missing...
 The keyboard uses unicode characters, try installing `ttf-symbola` on archlinux (AUR)
 or `ttf-ancient-fonts-symbola` on ubuntu/debian
+
+## Alternatives
+### [GJS OSK](https://extensions.gnome.org/extension/5949/gjs-osk/)
+Full-size Onscreen Keyboard than can be dragged around the screen.
