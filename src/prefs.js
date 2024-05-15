@@ -159,5 +159,44 @@ function buildPrefsWidget() {
   );
   prefsWidget.attach(inputShowStatusbarIcon, 1, 5, 1, 1);
 
+
+  const labelEnableRandomization = new Gtk.Label({
+    label: "Enable randomization",
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  prefsWidget.attach(labelEnableRandomization, 0, 6, 1, 1);
+
+  let inputEnableRandomization = new Gtk.Switch({
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  this.settings.bind(
+    "enable-randomization",
+    inputEnableRandomization,
+    "active",
+    Gio.SettingsBindFlags.DEFAULT
+  );
+  prefsWidget.attach(inputEnableRandomization, 1, 6, 1, 1);
+
+  const labelUpdateEveryKeystroke = new Gtk.Label({
+    label: "Update every keystroke",
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  prefsWidget.attach(labelUpdateEveryKeystroke, 0, 7, 1, 1);
+
+  let inputUpdateEveryKeystroke = new Gtk.Switch({
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  this.settings.bind(
+    "update-every-keystroke",
+    inputUpdateEveryKeystroke,
+    "active",
+    Gio.SettingsBindFlags.DEFAULT
+  );
+  prefsWidget.attach(inputUpdateEveryKeystroke, 1, 7, 1, 1);
+
   return prefsWidget;
 }

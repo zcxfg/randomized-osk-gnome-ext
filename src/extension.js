@@ -241,7 +241,9 @@ function override_addRowKeys(keys, layout) {
 
 function override_createLayersForGroup(groupName) {
   let keyboardModel = new KeyboardModel(groupName);
-  rearrange(keyboardModel);
+  if (settings.get_boolean("enable-randomization")) {
+    rearrange(keyboardModel);
+  }
   let layers = {};
   let levels = keyboardModel.getLevels();
   for (let i = 0; i < levels.length; i++) {
@@ -300,11 +302,12 @@ async function override_commitAction(keyval, str) {
     }
   }
 
-  if (str.length > 0) {
-    console.warn("commit");
-    let group = this._keyboardController.getCurrentGroup();
-    this._groups[group] = this._createLayersForGroup(group);
-    // this._ensureKeysForGroup(group);
+  if (settings.get_boolean("update-every-keystroke")) {
+    if (str.length > 0) {
+      let group = this._keyboardController.getCurrentGroup();
+      this._groups[group] = this._createLayersForGroup(group);
+      // this._ensureKeysForGroup(group);
+    }
   }
 
   if (!this._latched){
@@ -516,6 +519,10 @@ function enable() {
     } else {
       currentSeat.get_touch_mode = backup_touchMode;
     }
+  });
+
+  settings.connect("changed::enable-randomization", function () {
+    Main.keyboard._keyboard._keyboardController._onSourcesModified();
   });
 
   if (KeyboardIsSetup) {
