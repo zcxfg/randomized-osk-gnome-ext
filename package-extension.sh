@@ -20,7 +20,7 @@ cd "$root_dir" || exit
 
 # Create expected .zip folders structure
 mkdir dist
-cp LICENSE README.md src/*.js src/metadata.json src/stylesheet.css dist/
+cp LICENSE README.md src/*.js src/metadata.json dist/
 mkdir dist/data
 cp src/data/gnome-shell-osk-layouts.gresource dist/data/
 mkdir dist/schemas

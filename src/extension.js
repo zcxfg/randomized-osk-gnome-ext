@@ -6,9 +6,13 @@ const Key = Keyboard.Key;
 const PanelMenu = imports.ui.panelMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
+const KeyboardModel = Keyboard.KeyboardModel;
+const KeyContainer = Keyboard.KeyContainer;
 
 const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
 const KEY_RELEASE_TIMEOUT = 100;
+
+const RANDOM_SOURCE = Gio.File.new_for_path("/dev/urandom");
 
 let _oskA11yApplicationsSettings;
 let backup_lastDeviceIsTouchScreen;
@@ -20,6 +24,7 @@ let backup_toggleModifier;
 let backup_setActiveLayer;
 let backup_touchMode;
 let backup_getCurrentGroup;
+let backup_createLayersForGroup;
 let currentSeat;
 let _indicator;
 let settings;
@@ -27,6 +32,77 @@ let keyReleaseTimeoutId;
 
 function isInUnlockDialogMode() {
   return Main.sessionMode.currentMode === 'unlock-dialog';
+}
+
+function randint(random_istream, from, until) {
+  let bytes = random_istream.read_bytes(1, null); // GLib.Bytes
+  let byte_array = bytes.unref_to_array(); // GLib.ByteArray
+  let number = (Number) (byte_array[0]);
+  return number % (until - from) + from;
+}
+
+function shuffle(arr) {
+  const pass = 3;
+  if (! arr instanceof Array) {
+    console.warn("shuffle() is only apply to arrays");
+    return;
+  }
+  let random_istream = undefined;
+  try {
+    let io_stream = RANDOM_SOURCE.open_readwrite(null);
+    random_istream = io_stream.get_input_stream();
+  } catch (_) {
+    console.error(_);
+  }
+  if (random_istream) {
+    for (let round = 0; round < pass; ++round) {
+      for (let i = 0; i < arr.length; ++i) {
+        let x = randint(random_istream, 0, arr.length);
+        let y = randint(random_istream, 0, arr.length);
+        // console.warn(x, y);
+        if (x != y) {
+          let tmp = arr[x];
+          arr[x] = arr[y];
+          arr[y] = tmp;
+        }
+      }
+    }
+  }
+}
+
+function rearrange(keyboardModel) {
+  let levels = keyboardModel.getLevels();
+  // console.warn(levels);
+  for (let nlevel = 0; nlevel < levels.length; ++nlevel) {
+    let level = levels[nlevel];
+    let mappings = Array();
+    let rows = level['rows'];
+    for (let nrow = 0, counter = 0; nrow < rows.length; ++nrow) {
+      let row = rows[nrow];
+      for (let nbtn = 0; nbtn < row.length; ++nbtn) {
+        let btn = row[nbtn];
+        if (btn['strings']?.indexOf(' ') < 0) {
+          mappings[counter++] = btn;
+        }
+      }
+    }
+    // console.warn(mappings);
+    shuffle(mappings);
+    // console.warn(mappings);
+    let level_new = JSON.parse(JSON.stringify(level));
+    let rows_new = level_new['rows'];
+    for (let nrow = 0, cursor = 0; nrow < rows_new.length; ++nrow) {
+      let row = rows_new[nrow];
+      for (let nbtn = 0; nbtn < row.length; ++nbtn) {
+        let btn = row[nbtn];
+        if (btn['strings']?.indexOf(' ') < 0) {
+          row[nbtn] = mappings[cursor++];
+        }
+      }
+    }
+    levels[nlevel] = level_new;
+  }
+  // console.warn(levels);
 }
 
 // Indicator
@@ -163,11 +239,44 @@ function override_addRowKeys(keys, layout) {
   }
 }
 
+function override_createLayersForGroup(groupName) {
+  let keyboardModel = new KeyboardModel(groupName);
+  rearrange(keyboardModel);
+  let layers = {};
+  let levels = keyboardModel.getLevels();
+  for (let i = 0; i < levels.length; i++) {
+      let currentLevel = levels[i];
+      /* There are keyboard maps which consist of 3 levels (no uppercase,
+       * basically). We however make things consistent by skipping that
+       * second level.
+       */
+      let level = i >= 1 && levels.length == 3 ? i + 1 : i;
+
+      let layout = new KeyContainer();
+      layout.shiftKeys = [];
+      layout.mode = currentLevel.mode;
+
+      this._loadRows(currentLevel, level, levels.length, layout);
+      layers[level] = layout;
+      this._aspectContainer.add_child(layout);
+      layout.layoutButtons();
+
+      layout.hide();
+  }
+
+  return layers;
+}
+
 async function override_commitAction(keyval, str) {
   if (this._modifiers.size === 0 && str !== '' &&
       keyval && this._oskCompletionEnabled) {
-    if (await Main.inputMethod.handleVirtualKey(keyval))
-      return;
+    try {
+      if (await Main.inputMethod.handleVirtualKey(keyval)) {
+        return;
+      }
+    } catch(_) {
+      console.error(_);
+    }
   }
 
   if (str === '' || !Main.inputMethod.currentFocus ||
@@ -177,7 +286,7 @@ async function override_commitAction(keyval, str) {
     if (keyval !== 0) {
       // If sending a key combination with a string char, use lowercase key value,
       // otherwise extension can't reliably input "Shift + [key]" combinations
-      // See https://github.com/nick-shmyrev/randomized-osk-gnome-ext/issues/38#issuecomment-1466599579
+      // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/issues/38#issuecomment-1466599579
       const keyvalToPress = str === '' ? keyval : Key.prototype._getKeyvalFromString(str.toLowerCase());
 
       this._forwardModifiers(this._modifiers, Clutter.EventType.KEY_PRESS);
@@ -191,8 +300,16 @@ async function override_commitAction(keyval, str) {
     }
   }
 
-  if (!this._latched)
+  if (str.length > 0) {
+    console.warn("commit");
+    let group = this._keyboardController.getCurrentGroup();
+    this._groups[group] = this._createLayersForGroup(group);
+    // this._ensureKeysForGroup(group);
+  }
+
+  if (!this._latched){
     this._setActiveLayer(0);
+  }
 }
 
 function override_toggleDelete(enabled) {
@@ -271,6 +388,7 @@ function enable_overrides() {
   Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
   Keyboard.Keyboard.prototype["_commitAction"] = override_commitAction;
   Keyboard.Keyboard.prototype["_toggleDelete"] = override_toggleDelete;
+  Keyboard.Keyboard.prototype["_createLayersForGroup"] = override_createLayersForGroup;
 
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
@@ -292,6 +410,7 @@ function disable_overrides() {
   Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
   Keyboard.Keyboard.prototype["_commitAction"] = backup_commitAction;
   Keyboard.Keyboard.prototype["_toggleDelete"] = backup_toggleDelete;
+  Keyboard.Keyboard.prototype["_createLayersForGroup"] = backup_createLayersForGroup;
 
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
@@ -345,6 +464,7 @@ function init() {
   backup_addRowKeys = Keyboard.Keyboard.prototype["_addRowKeys"];
   backup_commitAction = Keyboard.Keyboard.prototype["_commitAction"];
   backup_toggleDelete = Keyboard.Keyboard.prototype["_toggleDelete"];
+  backup_createLayersForGroup = Keyboard.Keyboard.prototype["_createLayersForGroup"];
 
   backup_lastDeviceIsTouchScreen =
     Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
