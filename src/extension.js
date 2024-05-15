@@ -12,8 +12,6 @@ const KeyContainer = Keyboard.KeyContainer;
 const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
 const KEY_RELEASE_TIMEOUT = 100;
 
-const RANDOM_SOURCE = Gio.File.new_for_path("/dev/urandom");
-
 let _oskA11yApplicationsSettings;
 let backup_lastDeviceIsTouchScreen;
 let backup_relayout;
@@ -29,50 +27,14 @@ let currentSeat;
 let _indicator;
 let settings;
 let keyReleaseTimeoutId;
+let rand;
 
 function isInUnlockDialogMode() {
   return Main.sessionMode.currentMode === 'unlock-dialog';
 }
 
-function randint(random_istream, from, until) {
-  let bytes = random_istream.read_bytes(1, null); // GLib.Bytes
-  let byte_array = bytes.unref_to_array(); // GLib.ByteArray
-  let number = (Number) (byte_array[0]);
-  return number % (until - from) + from;
-}
-
-function shuffle(arr) {
-  const pass = 3;
-  if (! arr instanceof Array) {
-    console.warn("shuffle() is only apply to arrays");
-    return;
-  }
-  let random_istream = undefined;
-  try {
-    let io_stream = RANDOM_SOURCE.open_readwrite(null);
-    random_istream = io_stream.get_input_stream();
-  } catch (_) {
-    console.error(_);
-  }
-  if (random_istream) {
-    for (let round = 0; round < pass; ++round) {
-      for (let i = 0; i < arr.length; ++i) {
-        let x = randint(random_istream, 0, arr.length);
-        let y = randint(random_istream, 0, arr.length);
-        // console.warn(x, y);
-        if (x != y) {
-          let tmp = arr[x];
-          arr[x] = arr[y];
-          arr[y] = tmp;
-        }
-      }
-    }
-  }
-}
-
 function rearrange(keyboardModel) {
   let levels = keyboardModel.getLevels();
-  // console.warn(levels);
   for (let nlevel = 0; nlevel < levels.length; ++nlevel) {
     let level = levels[nlevel];
     let mappings = Array();
@@ -86,9 +48,7 @@ function rearrange(keyboardModel) {
         }
       }
     }
-    // console.warn(mappings);
-    shuffle(mappings);
-    // console.warn(mappings);
+    rand.shuffle(mappings);
     let level_new = JSON.parse(JSON.stringify(level));
     let rows_new = level_new['rows'];
     for (let nrow = 0, cursor = 0; nrow < rows_new.length; ++nrow) {
@@ -102,8 +62,51 @@ function rearrange(keyboardModel) {
     }
     levels[nlevel] = level_new;
   }
-  // console.warn(levels);
 }
+
+let GRand = GObject.registerClass(
+  { GTypeName: "GRand" }, 
+  class GRand extends GObject.Object {
+    _init() {
+      super._init();
+      this._pass = 3;
+      this._randomSource = Gio.File.new_for_path("/dev/urandom");
+      this._randomIStream = null;
+      try {
+        this._ioStream = this._randomSource.open_readwrite(null);
+        this._randomIStream = this._ioStream.get_input_stream();
+      } catch (_) {
+        console.error(_);
+      }
+    }
+
+    randint(from, until) {
+      if (this._randomIStream === null) {
+        throw new Error("Fail to open the random source.");
+      }
+      let bytes = this._randomIStream.read_bytes(1, null); // GLib.Bytes
+      let byte_array = bytes.unref_to_array(); // GLib.ByteArray
+      let number = (Number) (byte_array[0]);
+      return number % (until - from) + from;
+    }
+
+    shuffle(arr) {
+      if (! arr instanceof Array) {
+        console.warn("shuffle() is only apply to arrays");
+        return;
+      }
+      for (let i = 0; i < (this._pass * arr.length); ++i) {
+        let x = this.randint(0, arr.length);
+        let y = this.randint(0, arr.length);
+        if (x != y) {
+          let tmp = arr[x];
+          arr[x] = arr[y];
+          arr[y] = tmp;
+        }
+      }
+    }
+  }
+)
 
 // Indicator
 let OSKIndicator = GObject.registerClass(
@@ -501,6 +504,8 @@ function enable() {
 
   let KeyboardIsSetup = tryDestroyKeyboard();
 
+  rand = new GRand();
+
   enable_overrides();
 
   settings.connect("changed::show-statusbar-icon", function () {
@@ -549,6 +554,8 @@ function disable() {
   }
 
   settings = null;
+
+  rand = null;
 
   if (keyReleaseTimeoutId) {
     GLib.Source.remove(keyReleaseTimeoutId);
