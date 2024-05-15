@@ -177,7 +177,7 @@ async function override_commitAction(keyval, str) {
     if (keyval !== 0) {
       // If sending a key combination with a string char, use lowercase key value,
       // otherwise extension can't reliably input "Shift + [key]" combinations
-      // See https://github.com/nick-shmyrev/improved-osk-gnome-ext/issues/38#issuecomment-1466599579
+      // See https://github.com/nick-shmyrev/randomized-osk-gnome-ext/issues/38#issuecomment-1466599579
       const keyvalToPress = str === '' ? keyval : Key.prototype._getKeyvalFromString(str.toLowerCase());
 
       this._forwardModifiers(this._modifiers, Clutter.EventType.KEY_PRESS);
@@ -358,7 +358,7 @@ function init() {
 
 function enable() {
   settings = ExtensionUtils.getSettings(
-    "org.gnome.shell.extensions.improvedosk"
+    "org.gnome.shell.extensions.randomizedosk"
   );
   _oskA11yApplicationsSettings = new Gio.Settings({
     schema_id: A11Y_APPLICATIONS_SCHEMA,

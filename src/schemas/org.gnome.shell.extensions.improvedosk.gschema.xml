@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.gnome.shell.extensions.improvedosk" path="/org/gnome/shell/extensions/improvedosk/">
+  <schema id="org.gnome.shell.extensions.randomizedosk" path="/org/gnome/shell/extensions/randomizedosk/">
     <!-- The key type "a{sb}" describes a dictionary of string-boolean pairs -->
     <!-- See also: https://developer.gnome.org/glib/stable/gvariant-format-strings.html -->
     <key name="resize-desktop" type="b">
