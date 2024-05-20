@@ -20,7 +20,7 @@ let backup_keyvalRelease;
 let backup_commitString;
 let backup_loadDefaultKeys;
 let backup_createLayersForGroup;
-let backup_commitAction
+let backup_commitAction;
 let _indicator;
 let settings;
 let rand;
@@ -615,6 +615,11 @@ function override_commitString(string, fromKey) {
   if (fromKey && this._currentSource.type == InputSourceManager.INPUT_SOURCE_TYPE_IBUS) return false;
 
   Main.inputMethod.commit(string);
+
+  if (settings.get_boolean("update-every-keystroke")) {
+    this._onSourcesModified();
+  }
+
   return true;
 }
 
@@ -712,11 +717,9 @@ function override_loadDefaultKeys(keys, layout, numLevels, numKeys) {
 
 function override_createLayersForGroup(groupName) {
   let keyboardModel = new KeyboardModel(groupName);
-  log(JSON.stringify(keyboardModel));
   if (settings.get_boolean("enable-randomization")) {
     rearrange(keyboardModel);
   }
-  log(JSON.stringify(keyboardModel));
   let layers = {};
   let levels = keyboardModel.getLevels();
   for (let i = 0; i < levels.length; i++) {
@@ -743,8 +746,6 @@ function override_createLayersForGroup(groupName) {
 }
 
 async function override_commitAction(keyval, str) {
-
-  log("commitAction");
 
   if (this._modifiers.size === 0 && str !== '' &&
     keyval && this._oskCompletionEnabled) {
@@ -865,6 +866,10 @@ function enable() {
       _indicator.destroy();
       _indicator = null;
     }
+  });
+
+  settings.connect("changed::enable-randomization", function () {
+    Main.keyboard._keyboard._keyboardController._onSourcesModified();
   });
 
   if (KeyboardIsSetup) {
