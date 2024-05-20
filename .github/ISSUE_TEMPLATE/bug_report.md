@@ -31,4 +31,4 @@ If applicable, add screenshots to help explain your problem.
 Have you been running your system for a while, or is it a fresh installation?
 Are you running any other extensions that might interfere with on-screen keyboard?
 Does `journalctl /usr/bin/gnome-shell -f -o cat` show any errors?
-Can you see any errors in looking glass? (Press `Alt + F2`, enter `lg`, switch to "extensions" tab and click "show errors" for Improved OSK extension)
+Can you see any errors in looking glass? (Press `Alt + F2`, enter `lg`, switch to "extensions" tab and click "show errors" for Randomized OSK extension)

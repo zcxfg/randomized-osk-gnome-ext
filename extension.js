@@ -826,7 +826,7 @@ function init() {
 
 function enable() {
   settings = ExtensionUtils.getSettings(
-      "org.gnome.shell.extensions.improvedosk"
+      "org.gnome.shell.extensions.randomizedosk"
   );
   _oskA11yApplicationsSettings = new Gio.Settings({
     schema_id: A11Y_APPLICATIONS_SCHEMA,

@@ -1,4 +1,4 @@
-# improved-osk-gnome-ext
+# randomized-osk-gnome-ext
 
 Makes Gnome's onscreen keyboard more useable.
 
@@ -20,12 +20,12 @@ This extension is a fork of [SebastianLuebke/improved-osk-gnome-ext](https://git
 Clone the git repo
 
 ```console
-git clone https://github.com/nick-shmyrev/improved-osk-gnome-ext.git ~/.local/share/gnome-shell/extensions/improvedosk@nick-shmyrev.dev
+git clone https://github.com/zcxfg/randomized-osk-gnome-ext.git ~/.local/share/gnome-shell/extensions/randomizedosk@zcxfg.dev
 ```
 
 ### From extensions.gnome.org
 
-https://extensions.gnome.org/extension/4413/improved-osk/
+<!-- https://extensions.gnome.org/extension/4413/improved-osk/ -->
 
 ## Activation
 

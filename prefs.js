@@ -17,7 +17,7 @@ function buildPrefsWidget() {
 
   this.settings = new Gio.Settings({
     settings_schema: gschema.lookup(
-      "org.gnome.shell.extensions.improvedosk",
+      "org.gnome.shell.extensions.randomizedosk",
       true
     ),
   });
