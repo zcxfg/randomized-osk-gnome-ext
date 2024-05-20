@@ -18,5 +18,11 @@
     <key name="portrait-height" type="i">
       <default>16</default>
     </key>
+    <key name="enable-randomization" type="b">
+      <default>true</default>
+    </key>
+    <key name="update-every-keystroke" type="b">
+      <default>true</default>
+    </key>
   </schema>
 </schemalist>

@@ -6,6 +6,8 @@ const PanelMenu = imports.ui.panelMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const InputSourceManager = imports.ui.status.keyboard;
+const KeyboardModel = Keyboard.KeyboardModel;
+const KeyContainer = Keyboard.KeyContainer;
 
 const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
 let _oskA11yApplicationsSettings;
@@ -17,8 +19,11 @@ let backup_keyvalPress;
 let backup_keyvalRelease;
 let backup_commitString;
 let backup_loadDefaultKeys;
+let backup_createLayersForGroup;
+let backup_commitAction
 let _indicator;
 let settings;
+let rand;
 
 // Indicator
 let OSKIndicator = GObject.registerClass(
@@ -55,6 +60,83 @@ let OSKIndicator = GObject.registerClass(
     }
   }
 );
+
+
+function rearrange(keyboardModel) {
+  let levels = keyboardModel.getLevels();
+  for (let nlevel = 0; nlevel < levels.length; ++nlevel) {
+    let level = levels[nlevel];
+    let mappings = Array();
+    let rows = level['rows'];
+    for (let nrow = 0, counter = 0; nrow < rows.length; ++nrow) {
+      let row = rows[nrow];
+      for (let nbtn = 0; nbtn < row.length; ++nbtn) {
+        let btn = row[nbtn];
+        if (btn.indexOf(' ') < 0) {
+          mappings[counter++] = btn;
+        }
+      }
+    }
+    rand.shuffle(mappings);
+    let level_new = JSON.parse(JSON.stringify(level));
+    let rows_new = level_new['rows'];
+    for (let nrow = 0, cursor = 0; nrow < rows_new.length; ++nrow) {
+      let row = rows_new[nrow];
+      for (let nbtn = 0; nbtn < row.length; ++nbtn) {
+        let btn = row[nbtn];
+        if (btn.indexOf(' ') < 0) {
+          row[nbtn] = mappings[cursor++];
+        }
+      }
+    }
+    levels[nlevel] = level_new;
+  }
+}
+
+let GRand = GObject.registerClass(
+  { GTypeName: "GRand" }, 
+  class GRand extends GObject.Object {
+    _init() {
+      super._init();
+      this._pass = 3;
+      this._randomSource = Gio.File.new_for_path("/dev/urandom");
+      this._randomIStream = null;
+      try {
+        this._ioStream = this._randomSource.open_readwrite(null);
+        this._randomIStream = this._ioStream.get_input_stream();
+      } catch (_) {
+        console.error(_);
+      }
+    }
+
+    randint(from, until) {
+      if (this._randomIStream === null) {
+        throw new Error("Fail to open the random source.");
+      }
+      let bytes = this._randomIStream.read_bytes(1, null); // GLib.Bytes
+      let byte_array = bytes.unref_to_array(); // GLib.ByteArray
+      let number = (Number) (byte_array[0]);
+      return number % (until - from) + from;
+    }
+
+    shuffle(arr) {
+      if (! arr instanceof Array) {
+        console.warn("shuffle() is only apply to arrays");
+        return;
+      }
+      for (let i = 0; i < (this._pass * arr.length); ++i) {
+        let x = this.randint(0, arr.length);
+        let y = this.randint(0, arr.length);
+        if (x != y) {
+          let tmp = arr[x];
+          arr[x] = arr[y];
+          arr[y] = tmp;
+        }
+      }
+    }
+  }
+)
+
 
 // Overrides
 function override_lastDeviceIsTouchScreen() {
@@ -628,10 +710,79 @@ function override_loadDefaultKeys(keys, layout, numLevels, numKeys) {
   }
 }
 
+function override_createLayersForGroup(groupName) {
+  let keyboardModel = new KeyboardModel(groupName);
+  log(JSON.stringify(keyboardModel));
+  if (settings.get_boolean("enable-randomization")) {
+    rearrange(keyboardModel);
+  }
+  log(JSON.stringify(keyboardModel));
+  let layers = {};
+  let levels = keyboardModel.getLevels();
+  for (let i = 0; i < levels.length; i++) {
+      let currentLevel = levels[i];
+      /* There are keyboard maps which consist of 3 levels (no uppercase,
+       * basically). We however make things consistent by skipping that
+       * second level.
+       */
+      let level = i >= 1 && levels.length == 3 ? i + 1 : i;
+
+      let layout = new KeyContainer();
+      layout.shiftKeys = [];
+      layout.mode = currentLevel.mode;
+
+      this._loadRows(currentLevel, level, levels.length, layout);
+      layers[level] = layout;
+      this._aspectContainer.add_child(layout);
+      layout.layoutButtons(this._aspectContainer);
+
+      layout.hide();
+  }
+
+  return layers;
+}
+
+async function override_commitAction(keyval, str) {
+
+  log("commitAction");
+
+  if (this._modifiers.size === 0 && str !== '' &&
+    keyval && this._oskCompletionEnabled) {
+    if (await Main.inputMethod.handleVirtualKey(keyval))
+      return; 
+  }
+
+  if (str === '' || !Main.inputMethod.currentFocus ||
+    (keyval && this._oskCompletionEnabled) ||
+    this._modifiers.size > 0 ||
+    !this._keyboardController.commitString(str, true)) {
+    if (keyval !== 0) {
+      this._forwardModifiers(this._modifiers, Clutter.EventType.KEY_PRESS);
+      this._keyboardController.keyvalPress(keyval);
+      GLib.timeout_add(GLib.PRIORITY_DEFAULT, KEY_RELEASE_TIMEOUT, () => {
+        this._keyboardController.keyvalRelease(keyval);
+        this._forwardModifiers(this._modifiers, Clutter.EventType.KEY_RELEASE);
+        this._disableAllModifiers();
+        return GLib.SOURCE_REMOVE;
+      });
+    }
+  }
+
+  if (settings.get_boolean("update-every-keystroke")) {
+    if (str.length > 0) {
+      let group = this._keyboardController.getCurrentGroup();
+      this._groups[group] = this._createLayersForGroup(group);
+      // this._ensureKeysForGroup(group);
+    }
+  }
+}
+
 function enable_overrides() {
   Keyboard.Keyboard.prototype["_relayout"] = override_relayout;
   Keyboard.Keyboard.prototype["_loadDefaultKeys"] = override_loadDefaultKeys;
   Keyboard.Keyboard.prototype["_getDefaultKeysForRow"] = override_getDefaultKeysForRow;
+  Keyboard.Keyboard.prototype["_createLayersForGroup"] = override_createLayersForGroup;
+  Keyboard.Keyboard.prototype["_commitAction"] = override_commitAction;
 
   Keyboard.KeyboardController.prototype["constructor"] = override_keyboardControllerConstructor;
   Keyboard.KeyboardController.prototype["keyvalPress"] = override_keyvalPress;
@@ -645,6 +796,8 @@ function disable_overrides() {
   Keyboard.Keyboard.prototype["_relayout"] = backup_relayout;
   Keyboard.Keyboard.prototype["_loadDefaultKeys"] = backup_loadDefaultKeys;
   Keyboard.Keyboard.prototype["_getDefaultKeysForRow"] = backup_DefaultKeysForRow;
+  Keyboard.Keyboard.prototype["_createLayersForGroup"] = backup_createLayersForGroup;
+  Keyboard.Keyboard.prototype["_commitAction"] = backup_commitAction;
 
   Keyboard.KeyboardController.prototype["constructor"] = backup_keyboardControllerConstructor;
   Keyboard.KeyboardController.prototype["keyvalPress"] = backup_keyvalPress;
@@ -659,6 +812,8 @@ function init() {
   backup_relayout = Keyboard.Keyboard.prototype["_relayout"];
   backup_loadDefaultKeys = Keyboard.Keyboard.prototype["_loadDefaultKeys"]
   backup_DefaultKeysForRow = Keyboard.Keyboard.prototype["_getDefaultKeysForRow"];
+  backup_createLayersForGroup = Keyboard.Keyboard.prototype["_createLayersForGroup"];
+  backup_commitAction = Keyboard.Keyboard.prototype["_commitAction"];
 
   backup_keyboardControllerConstructor = Keyboard.KeyboardController.prototype["constructor"];
   backup_keyvalPress = Keyboard.KeyboardController.prototype["keyvalPress"];
@@ -697,6 +852,8 @@ function enable() {
       throw e;
     }
   }
+
+  rand = new GRand();
 
   enable_overrides();
 
@@ -744,6 +901,7 @@ function disable() {
   }
 
   settings = null;
+  rand = null;
 
   disable_overrides();
 
