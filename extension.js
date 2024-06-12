@@ -99,11 +99,10 @@ let GRand = GObject.registerClass(
     _init() {
       super._init();
       this._pass = 3;
-      this._randomSource = Gio.File.new_for_path("/dev/urandom");
+      this._randomSource = Gio.File.new_for_path("/dev/random");
       this._randomIStream = null;
       try {
-        this._ioStream = this._randomSource.open_readwrite(null);
-        this._randomIStream = this._ioStream.get_input_stream();
+        this._randomIStream = this._randomSource.read(null, null); // FileIStream
       } catch (_) {
         console.error(_);
       }
