@@ -102,7 +102,7 @@ let GRand = GObject.registerClass(
       this._randomSource = Gio.File.new_for_path("/dev/random");
       this._randomIStream = null;
       try {
-        this._randomIStream = this._randomSource.read(null, null); // FileIStream
+        this._randomIStream = this._randomSource.read(null); // FileIStream
       } catch (_) {
         console.error(_);
       }

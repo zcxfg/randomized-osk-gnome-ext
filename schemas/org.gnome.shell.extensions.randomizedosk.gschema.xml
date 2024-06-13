@@ -22,7 +22,7 @@
       <default>true</default>
     </key>
     <key name="update-every-keystroke" type="b">
-      <default>true</default>
+      <default>false</default>
     </key>
   </schema>
 </schemalist>
