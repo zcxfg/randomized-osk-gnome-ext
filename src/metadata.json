@@ -4,5 +4,6 @@
   "shell-version": ["40", "41", "42", "43", "44", "45", "46"],
   "url": "https://github.com/zcxfg/randomized-osk-gnome-ext",
   "uuid": "randomized@zcxfg.dev",
-  "version": 0.5
+  "version": 0.5,
+  "session-modes": ["user", "gdm"]
 }

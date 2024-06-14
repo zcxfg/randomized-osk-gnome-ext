@@ -319,10 +319,12 @@ function rearrange(keyboardModel) {
   let levels = keyboardModel['levels'];
   let random = new SecureRandom();
   levels.forEach(level => {
+    // This nullity check is for solving incompatible json 
+    // format of keyboard layout accross multiple major versions.
     let mappings = level['rows'].flatMap((row) =>
       row.filter((btn) =>
         ((btn['strings'] || btn['action'] || btn).indexOf(' ') < 0)));
-    random?.shuffle(mappings);
+    random.shuffle(mappings);
     let rows_new = JSON.parse(JSON.stringify(level['rows']));
     let cursor = 0;
     level['rows'] = rows_new.map(row =>
@@ -507,7 +509,7 @@ function enable() {
   // });
 
   // notify keyboard to redraw
-  Main.keyboard._keyboard._keyboardController._onSourcesModified();
+  Main.keyboard?._keyboard?._keyboardController._onSourcesModified();
 
   // Main.layoutManager.addTopChrome(Main.layoutManager.keyboardBox, {
   //   affectsStruts: settings.get_boolean("resize-desktop"),
@@ -536,6 +538,6 @@ function disable() {
   disable_overrides();
 
   // notify keyboard to redraw
-  Main.keyboard._keyboard._keyboardController._onSourcesModified();
+  Main.keyboard?._keyboard?._keyboardController._onSourcesModified();
   // Main.layoutManager.addTopChrome(Main.layoutManager.keyboardBox);
 }
