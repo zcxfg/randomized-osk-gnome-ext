@@ -315,6 +315,19 @@ let keyReleaseTimeoutId;
 //   return this._currentSource.xkbId;
 // }
 
+function keyboard_update() {
+  // notify keyboard to update its layout
+  Main.keyboard?._keyboard?._keyboardController._onSourcesModified();
+}
+
+function randomizerSetEnable() {
+  Randomizer.setEnable(
+    settings.get_boolean("enable-randomization"),
+    false,
+    settings.get_boolean("update-every-keystroke")
+  );
+}
+
 function enable_overrides() {
   // Keyboard.Keyboard.prototype["_relayout"] = override_relayout;
   // Keyboard.Keyboard.prototype["_toggleModifier"] = override_toggleModifier;
@@ -330,8 +343,7 @@ function enable_overrides() {
   // Keyboard.KeyboardController.prototype["getCurrentGroup"] =
   //   override_getCurrentGroup;
 
-  // KeyboardModel.prototype["_loadModel"] = override__loadModel;
-  Randomizer.enable();
+  randomizerSetEnable();
 
   // Unregister original osk layouts resource file
   // getDefaultLayouts()._unregister();
@@ -355,8 +367,7 @@ function disable_overrides() {
   // Keyboard.KeyboardController.prototype["getCurrentGroup"] =
   //   backup_getCurrentGroup;
 
-  // KeyboardModel.prototype["_loadModel"] = backup_KeyboardModel__loadModel;
-  Randomizer.disable();
+  randomizerSetEnable();
 
   // Unregister modified osk layouts resource file
   // getModifiedLayouts()._unregister();
@@ -395,8 +406,6 @@ function init() {
 
   // backup_getCurrentGroup =
   //   Keyboard.KeyboardController.prototype["getCurrentGroup"];
-
-  // backup_KeyboardModel__loadModel = KeyboardModel.prototype["_loadModel"];
 
   // currentSeat = Clutter.get_default_backend().get_default_seat();
   // backup_touchMode = currentSeat.get_touch_mode;
@@ -440,12 +449,17 @@ function enable() {
   //   }
   // });
 
-  // settings.connect("changed::enable-randomization", function () {
-  //   Main.keyboard._keyboard._keyboardController._onSourcesModified();
-  // });
+  settings.connect("changed::enable-randomization", function () {
+    randomizerSetEnable();
+    keyboard_update();
+  });
 
-  // notify keyboard to redraw
-  Main.keyboard?._keyboard?._keyboardController._onSourcesModified();
+  settings.connect("changed::update-every-keystroke", function () {
+    randomizerSetEnable();
+    keyboard_update();
+  });
+
+  keyboard_update();
 
   // Main.layoutManager.addTopChrome(Main.layoutManager.keyboardBox, {
   //   affectsStruts: settings.get_boolean("resize-desktop"),
@@ -464,7 +478,7 @@ function disable() {
   //   _indicator = null;
   // }
 
-  settings = null;
+  
 
   if (keyReleaseTimeoutId) {
     GLib.Source.remove(keyReleaseTimeoutId);
@@ -472,8 +486,8 @@ function disable() {
   }
 
   disable_overrides();
-
-  // notify keyboard to redraw
-  Main.keyboard?._keyboard?._keyboardController._onSourcesModified();
+  keyboard_update();
+  
   // Main.layoutManager.addTopChrome(Main.layoutManager.keyboardBox);
+  settings = null;
 }

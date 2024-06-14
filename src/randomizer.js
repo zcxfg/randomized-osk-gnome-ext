@@ -1,7 +1,12 @@
 "use strict";
 const { Gio, GObject } = imports.gi;
+const Main = imports.ui.main;
 const Keyboard = imports.ui.keyboard;
 const KeyboardModel = Keyboard.KeyboardModel;
+const KeyboardController = Keyboard.KeyboardController;
+
+let updateOnReopen = false;
+let updateOnType = false;
 
 const SecureRandom = GObject.registerClass({
   GTypeName: "SecureRandom"
@@ -63,26 +68,69 @@ const KeyboardModel_loadModel_Handler = {
   },
 
   apply: function (_loadModel, thiz, args) {
-    let groupName = args[0];
-    let model = _loadModel(groupName);
+    let model = _loadModel.apply(thiz, args);
     this.rearrange(model);
+    // log(JSON.stringify(model));
     return model;
   },
+}
+
+const KeyboardController_commitString_Handler = {
+  apply: function(commitString, thiz, args) {
+    let _keyboard = Main.keyboard?._keyboard;
+    if (!_keyboard) {
+      return;
+    }
+    let latched = _keyboard._latched;
+    let level = _keyboard._activeLayer;
+    // log(`latched: ${latched}, level: ${level}`);
+    // end of pre-execution
+    let res = commitString.apply(thiz, args);
+    // start of post-execution
+    // notify redraw
+    thiz._onSourcesModified();
+    // restore page level and latch state
+    _keyboard._setActiveLayer(level);
+    _keyboard._latched = latched;
+    _keyboard._setCurrentLevelLatched(_keyboard._currentPage, latched);
+    return res;
+  }
+}
+
+const Keyboard__setActiveLayer_Handler = {
+  apply: function(_setActiveLayer, thiz, args) {
+    thiz._activeLayer = args[0];
+    // end of pre-execution
+    _setActiveLayer.apply(thiz, args);
+  }
 }
 
 const backup_KeyboardModel__loadModel = KeyboardModel.prototype["_loadModel"];
 const override_KeyboardModel__loadModel = 
   new Proxy(backup_KeyboardModel__loadModel, KeyboardModel_loadModel_Handler);
 
-var enable = function() {
+const backup_Keyboard__setActiveLayer = Keyboard.Keyboard.prototype["_setActiveLayer"];
+const override_Keyboard__setActiveLayer = 
+  new Proxy(backup_Keyboard__setActiveLayer, Keyboard__setActiveLayer_Handler);
+
+const backup_KeyboardController_commitString = KeyboardController.prototype["commitString"];
+const override_KeyboardController_commitString = 
+  new Proxy(backup_KeyboardController_commitString, KeyboardController_commitString_Handler);
+
+var setEnable = function(_enable = false, _updateOnReopen = false, _updateOnType = false) {
+  if (!_enable) {
+    KeyboardModel.prototype["_loadModel"] = backup_KeyboardModel__loadModel;
+    Keyboard.Keyboard.prototype["_setActiveLayer"] = backup_Keyboard__setActiveLayer;
+    KeyboardController.prototype["commitString"] = backup_KeyboardController_commitString;
+    return;
+  }
+  updateOnReopen = _updateOnReopen;
+  updateOnType = _updateOnType;
   KeyboardModel.prototype["_loadModel"] = override_KeyboardModel__loadModel;
+  Keyboard.Keyboard.prototype["_setActiveLayer"] = override_Keyboard__setActiveLayer;
+  if (_updateOnType) {
+    KeyboardController.prototype["commitString"] = override_KeyboardController_commitString;
+  }
 }
 
-var disable = function() {
-  KeyboardModel.prototype["_loadModel"] = backup_KeyboardModel__loadModel;
-}
-
-var Randomizer = {
-  enable,
-  disable
-}
+var Randomizer = { setEnable }
