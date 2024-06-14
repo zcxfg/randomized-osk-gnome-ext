@@ -1,7 +1,7 @@
 {
   "description": "Enable gnome onscreen keyboard to randomize the keyboard layout.",
   "name": "Randomized OSK",
-  "shell-version": ["40", "41", "42", "43", "44", "45", "46"],
+  "shell-version": ["40", "41", "42", "43", "44"],
   "url": "https://github.com/zcxfg/randomized-osk-gnome-ext",
   "uuid": "randomized@zcxfg.dev",
   "version": 0.5,

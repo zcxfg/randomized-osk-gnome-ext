@@ -10,6 +10,8 @@ const Me = ExtensionUtils.getCurrentExtension();
 const KeyboardModel = Keyboard.KeyboardModel;
 const KeyContainer = Keyboard.KeyContainer;
 
+const Randomizer = Me.imports.randomizer;
+
 const A11Y_APPLICATIONS_SCHEMA = "org.gnome.desktop.a11y.applications";
 const EXTENSION_NAME = "org.gnome.shell.extensions.randomizedosk";
 const KEY_RELEASE_TIMEOUT = 100;
@@ -29,8 +31,6 @@ let currentSeat;
 let _indicator;
 let settings;
 let keyReleaseTimeoutId;
-
-let backup_KeyboardModel__loadModel;
 
 // function isInUnlockDialogMode() {
 //   return Main.sessionMode.currentMode === 'unlock-dialog';
@@ -315,72 +315,6 @@ let backup_KeyboardModel__loadModel;
 //   return this._currentSource.xkbId;
 // }
 
-function rearrange(keyboardModel) {
-  let levels = keyboardModel['levels'];
-  let random = new SecureRandom();
-  levels.forEach(level => {
-    // This nullity check is for solving incompatible json 
-    // format of keyboard layout accross multiple major versions.
-    let mappings = level['rows'].flatMap((row) =>
-      row.filter((btn) =>
-        ((btn['strings'] || btn['action'] || btn).indexOf(' ') < 0)));
-    random.shuffle(mappings);
-    let rows_new = JSON.parse(JSON.stringify(level['rows']));
-    let cursor = 0;
-    level['rows'] = rows_new.map(row =>
-      row.map((btn) =>
-        ((btn['strings'] || btn['action'] || btn).indexOf(' ') < 0) ? 
-          mappings[cursor++] : btn));
-  });
-}
-
-let SecureRandom = GObject.registerClass({
-  GTypeName: "SecureRandom"
-},
-  class SecureRandom extends GObject.Object {
-    _init() {
-      super._init();
-      this._pass = 3;
-      this._randomSource = Gio.File.new_for_path("/dev/random");
-      this._randomIStream = this._randomSource.read(null); // FileIStream
-    }
-
-    rand_int8(from, until) {
-      if (!this._randomIStream) {
-        throw new Error("Fail to open the random source.");
-      }
-      let bytes = this._randomIStream.read_bytes(1, null); // GLib.Bytes
-      let byte_array = bytes.unref_to_array(); // GLib.ByteArray
-      let number = (Number)(byte_array[0]);
-      return number % (until - from) + from;
-    }
-
-    shuffle(arr) {
-      if (!arr instanceof Array) {
-        throw new Error("shuffle() is only apply to arrays");
-      }
-      for (let i = 0; i < (this._pass * arr.length); ++i) {
-        let x = this.rand_int8(0, arr.length);
-        let y = this.rand_int8(0, arr.length);
-        if (x != y) {
-          let tmp = arr[x];
-          arr[x] = arr[y];
-          arr[y] = tmp;
-        }
-      }
-    }
-  }
-)
-
-function override__loadModel(groupName) {
-  let file = Gio.File.new_for_uri('resource:///org/gnome/shell/osk-layouts/%s.json'.format(groupName));
-  let [success_, contents] = file.load_contents(null);
-  contents = ByteArray.toString(contents);
-  let model = JSON.parse(contents);
-  rearrange(model);
-  return model;
-}
-
 function enable_overrides() {
   // Keyboard.Keyboard.prototype["_relayout"] = override_relayout;
   // Keyboard.Keyboard.prototype["_toggleModifier"] = override_toggleModifier;
@@ -396,7 +330,8 @@ function enable_overrides() {
   // Keyboard.KeyboardController.prototype["getCurrentGroup"] =
   //   override_getCurrentGroup;
 
-  KeyboardModel.prototype["_loadModel"] = override__loadModel;
+  // KeyboardModel.prototype["_loadModel"] = override__loadModel;
+  Randomizer.enable();
 
   // Unregister original osk layouts resource file
   // getDefaultLayouts()._unregister();
@@ -420,7 +355,8 @@ function disable_overrides() {
   // Keyboard.KeyboardController.prototype["getCurrentGroup"] =
   //   backup_getCurrentGroup;
 
-  KeyboardModel.prototype["_loadModel"] = backup_KeyboardModel__loadModel;
+  // KeyboardModel.prototype["_loadModel"] = backup_KeyboardModel__loadModel;
+  Randomizer.disable();
 
   // Unregister modified osk layouts resource file
   // getModifiedLayouts()._unregister();
@@ -460,7 +396,7 @@ function init() {
   // backup_getCurrentGroup =
   //   Keyboard.KeyboardController.prototype["getCurrentGroup"];
 
-  backup_KeyboardModel__loadModel = KeyboardModel.prototype["_loadModel"];
+  // backup_KeyboardModel__loadModel = KeyboardModel.prototype["_loadModel"];
 
   // currentSeat = Clutter.get_default_backend().get_default_seat();
   // backup_touchMode = currentSeat.get_touch_mode;
