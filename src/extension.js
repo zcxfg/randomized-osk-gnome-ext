@@ -322,9 +322,9 @@ function keyboard_update() {
 
 function randomizerSetEnable() {
   Randomizer.setEnable(
-    settings.get_boolean("enable-randomization"),
-    true,
-    settings.get_boolean("update-every-keystroke")
+    settings.get_boolean("layout-randomization"),
+    settings.get_boolean("update-on-reopen"),
+    settings.get_boolean("update-on-type")
   );
 }
 
@@ -367,7 +367,7 @@ function disable_overrides() {
   // Keyboard.KeyboardController.prototype["getCurrentGroup"] =
   //   backup_getCurrentGroup;
 
-  randomizerSetEnable();
+  Randomizer.setEnable(false);
 
   // Unregister modified osk layouts resource file
   // getModifiedLayouts()._unregister();
@@ -449,12 +449,17 @@ function enable() {
   //   }
   // });
 
-  settings.connect("changed::enable-randomization", function () {
+  settings.connect("changed::layout-randomization", function () {
     randomizerSetEnable();
     keyboard_update();
   });
 
-  settings.connect("changed::update-every-keystroke", function () {
+  settings.connect("changed::update-on-reopen", function () {
+    randomizerSetEnable();
+    keyboard_update();
+  });
+
+  settings.connect("changed::update-on-type", function () {
     randomizerSetEnable();
     keyboard_update();
   });
@@ -477,8 +482,6 @@ function disable() {
   //   _indicator.destroy();
   //   _indicator = null;
   // }
-
-  
 
   if (keyReleaseTimeoutId) {
     GLib.Source.remove(keyReleaseTimeoutId);
