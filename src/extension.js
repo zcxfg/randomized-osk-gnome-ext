@@ -323,7 +323,7 @@ function keyboard_update() {
 function randomizerSetEnable() {
   Randomizer.setEnable(
     settings.get_boolean("enable-randomization"),
-    false,
+    true,
     settings.get_boolean("update-every-keystroke")
   );
 }
@@ -487,7 +487,7 @@ function disable() {
 
   disable_overrides();
   keyboard_update();
-  
+
   // Main.layoutManager.addTopChrome(Main.layoutManager.keyboardBox);
   settings = null;
 }

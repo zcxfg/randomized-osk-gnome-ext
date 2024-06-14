@@ -67,8 +67,8 @@ const KeyboardModel_loadModel_Handler = {
     });
   },
 
-  apply: function (_loadModel, thiz, args) {
-    let model = _loadModel.apply(thiz, args);
+  apply: function (_loadModel, it, args) {
+    let model = _loadModel.apply(it, args);
     this.rearrange(model);
     // log(JSON.stringify(model));
     return model;
@@ -76,19 +76,19 @@ const KeyboardModel_loadModel_Handler = {
 }
 
 const KeyboardController_commitString_Handler = {
-  apply: function(commitString, thiz, args) {
+  apply: function(commitString, it, args) {
     let _keyboard = Main.keyboard?._keyboard;
     if (!_keyboard) {
-      return;
+      return false;
     }
     let latched = _keyboard._latched;
     let level = _keyboard._activeLayer;
     // log(`latched: ${latched}, level: ${level}`);
     // end of pre-execution
-    let res = commitString.apply(thiz, args);
+    let res = commitString.apply(it, args);
     // start of post-execution
     // notify redraw
-    thiz._onSourcesModified();
+    it._onSourcesModified();
     // restore page level and latch state
     _keyboard._setActiveLayer(level);
     _keyboard._latched = latched;
@@ -98,10 +98,18 @@ const KeyboardController_commitString_Handler = {
 }
 
 const Keyboard__setActiveLayer_Handler = {
-  apply: function(_setActiveLayer, thiz, args) {
-    thiz._activeLayer = args[0];
+  apply: function(_setActiveLayer, it, args) {
+    it._activeLayer = args[0];
     // end of pre-execution
-    _setActiveLayer.apply(thiz, args);
+    _setActiveLayer.apply(it, args);
+  }
+}
+
+const Keyboard_open_Handler = {
+  apply: function(open, it, args) {
+    // end of pre-execution
+    open.apply(it, args);
+    it._keyboardController._onSourcesModified();
   }
 }
 
@@ -113,22 +121,28 @@ const backup_Keyboard__setActiveLayer = Keyboard.Keyboard.prototype["_setActiveL
 const override_Keyboard__setActiveLayer = 
   new Proxy(backup_Keyboard__setActiveLayer, Keyboard__setActiveLayer_Handler);
 
+const backup_Keyboard_open = Keyboard.Keyboard.prototype["open"];
+const override_Keyboard_open = 
+  new Proxy(backup_Keyboard_open, Keyboard_open_Handler);
+
 const backup_KeyboardController_commitString = KeyboardController.prototype["commitString"];
 const override_KeyboardController_commitString = 
   new Proxy(backup_KeyboardController_commitString, KeyboardController_commitString_Handler);
 
-var setEnable = function(_enable = false, _updateOnReopen = false, _updateOnType = false) {
-  if (!_enable) {
+var setEnable = function(enable = false, updateOnReopen = false, updateOnType = false) {
+  if (!enable) {
     KeyboardModel.prototype["_loadModel"] = backup_KeyboardModel__loadModel;
     Keyboard.Keyboard.prototype["_setActiveLayer"] = backup_Keyboard__setActiveLayer;
+    Keyboard.Keyboard.prototype["open"] = backup_Keyboard_open;
     KeyboardController.prototype["commitString"] = backup_KeyboardController_commitString;
     return;
   }
-  updateOnReopen = _updateOnReopen;
-  updateOnType = _updateOnType;
   KeyboardModel.prototype["_loadModel"] = override_KeyboardModel__loadModel;
   Keyboard.Keyboard.prototype["_setActiveLayer"] = override_Keyboard__setActiveLayer;
-  if (_updateOnType) {
+  if (updateOnReopen) {
+    Keyboard.Keyboard.prototype["open"] = override_Keyboard_open;
+  }
+  if (updateOnType) {
     KeyboardController.prototype["commitString"] = override_KeyboardController_commitString;
   }
 }
