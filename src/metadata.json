@@ -5,5 +5,5 @@
   "url": "https://github.com/zcxfg/randomized-osk-gnome-ext",
   "uuid": "randomized@zcxfg.dev",
   "version": 0.5,
-  "session-modes": ["user", "gdm"]
+  "session-modes": ["user", "unlock-dialog", "gdm"]
 }
