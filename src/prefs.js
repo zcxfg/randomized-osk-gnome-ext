@@ -161,7 +161,7 @@ function buildPrefsWidget() {
 
 
   const labelEnableRandomization = new Gtk.Label({
-    label: "Enable randomization",
+    label: "Enable layout randomization",
     halign: Gtk.Align.START,
     visible: true,
   });
@@ -172,31 +172,50 @@ function buildPrefsWidget() {
     visible: true,
   });
   this.settings.bind(
-    "enable-randomization",
+    "layout-randomization",
     inputEnableRandomization,
     "active",
     Gio.SettingsBindFlags.DEFAULT
   );
   prefsWidget.attach(inputEnableRandomization, 1, 6, 1, 1);
 
-  const labelUpdateEveryKeystroke = new Gtk.Label({
-    label: "Update every keystroke",
+  const labelUpdateOnReopen = new Gtk.Label({
+    label: "Randomizing layout on reopen",
     halign: Gtk.Align.START,
     visible: true,
   });
-  prefsWidget.attach(labelUpdateEveryKeystroke, 0, 7, 1, 1);
+  prefsWidget.attach(labelUpdateOnReopen, 0, 7, 1, 1);
+
+  let inputUpdateOnReopen = new Gtk.Switch({
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  this.settings.bind(
+    "update-on-reopen",
+    inputUpdateOnReopen,
+    "active",
+    Gio.SettingsBindFlags.DEFAULT
+  );
+  prefsWidget.attach(inputUpdateOnReopen, 1, 7, 1, 1);
+
+  const labelUpdateEveryKeystroke = new Gtk.Label({
+    label: "Randomizing layout on every type",
+    halign: Gtk.Align.START,
+    visible: true,
+  });
+  prefsWidget.attach(labelUpdateEveryKeystroke, 0, 8, 1, 1);
 
   let inputUpdateEveryKeystroke = new Gtk.Switch({
     halign: Gtk.Align.START,
     visible: true,
   });
   this.settings.bind(
-    "update-every-keystroke",
+    "update-on-type",
     inputUpdateEveryKeystroke,
     "active",
     Gio.SettingsBindFlags.DEFAULT
   );
-  prefsWidget.attach(inputUpdateEveryKeystroke, 1, 7, 1, 1);
+  prefsWidget.attach(inputUpdateEveryKeystroke, 1, 8, 1, 1);
 
   return prefsWidget;
 }
