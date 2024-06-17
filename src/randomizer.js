@@ -51,20 +51,24 @@ const KeyboardModel_loadModel_Handler = {
   rearrange(keyboardModel) {
     let levels = keyboardModel['levels'];
     let random = new SecureRandom();
+    log(JSON.stringify(levels));
     levels.forEach(level => {
       // This nullity check is for solving incompatible json 
       // format of keyboard layout accross multiple major versions.
-      let mappings = level['rows'].flatMap((row) =>
-        row.filter((btn) =>
-          ((btn['strings'] || btn['action'] || btn).indexOf(' ') < 0)));
+      let mappings = level['rows'].flatMap(row => row.filter(btn =>
+        (!btn['keyval']) && 
+        (!btn['action']) && 
+        (btn['strings'] || btn).indexOf(' ') < 0));
       random.shuffle(mappings);
       let rows_new = JSON.parse(JSON.stringify(level['rows']));
       let cursor = 0;
-      level['rows'] = rows_new.map(row =>
-        row.map((btn) =>
-          ((btn['strings'] || btn['action'] || btn).indexOf(' ') < 0) ?
-            mappings[cursor++] : btn));
-    });
+      level['rows'] = rows_new.map(row => row.map(btn =>
+        (btn['keyval'] || 
+          btn['action'] || 
+          (btn['strings'] || btn).indexOf(' ') >= 0
+        ) ? btn : mappings[cursor++]));
+      });
+      log(JSON.stringify(levels));
   },
 
   apply: function (_loadModel, it, args) {
@@ -77,22 +81,23 @@ const KeyboardModel_loadModel_Handler = {
 
 const KeyboardController_commitString_Handler = {
   apply: function (commitString, it, args) {
-    let _keyboard = Main.keyboard?._keyboard;
-    if (!_keyboard) {
-      return false;
-    }
-    let latched = _keyboard._latched;
-    let level = _keyboard._activeLayer;
-    // log(`latched: ${latched}, level: ${level}`);
-    // end of pre-execution
     let res = commitString.apply(it, args);
     // start of post-execution
-    // notify redraw
-    it._onSourcesModified();
-    // restore page level and latch state
-    _keyboard._setActiveLayer(level);
-    _keyboard._latched = latched;
-    _keyboard._setCurrentLevelLatched(_keyboard._currentPage, latched);
+    (async function() {
+      let _keyboard = Main.keyboard?._keyboard;
+      if (!_keyboard) {
+        return false;
+      }
+      let latched = _keyboard._latched;
+      let level = _keyboard._activeLayer;
+      // log(`latched: ${latched}, level: ${level}`);
+      // notify redraw
+      it._onSourcesModified();
+      // restore page level and latch state
+      _keyboard._setActiveLayer(level);
+      _keyboard._latched = latched;
+      _keyboard._setCurrentLevelLatched(_keyboard._currentPage, latched);
+    })();
     return res;
   }
 }
@@ -109,7 +114,9 @@ const Keyboard_open_Handler = {
   apply: function (open, it, args) {
     // end of pre-execution
     open.apply(it, args);
-    it._keyboardController._onSourcesModified();
+    (async function() {
+      it._keyboardController._onSourcesModified();
+    })();
   }
 }
 
