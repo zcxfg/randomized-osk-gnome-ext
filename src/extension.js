@@ -26,7 +26,7 @@ function randomizerSetEnable() {
   );
 }
 
-function enable_overrides() { 
+function enable_overrides() {
   randomizerSetEnable();
 }
 

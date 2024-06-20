@@ -51,24 +51,22 @@ const KeyboardModel_loadModel_Handler = {
   rearrange(keyboardModel) {
     let levels = keyboardModel['levels'];
     let random = new SecureRandom();
-    log(JSON.stringify(levels));
     levels.forEach(level => {
-      // This nullity check is for solving incompatible json 
+      // This nullity check is for solving incompatible json
       // format of keyboard layout accross multiple major versions.
       let mappings = level['rows'].flatMap(row => row.filter(btn =>
-        (!btn['keyval']) && 
-        (!btn['action']) && 
+        (!btn['keyval']) &&
+        (!btn['action']) &&
         (btn['strings'] || btn).indexOf(' ') < 0));
       random.shuffle(mappings);
       let rows_new = JSON.parse(JSON.stringify(level['rows']));
       let cursor = 0;
       level['rows'] = rows_new.map(row => row.map(btn =>
-        (btn['keyval'] || 
-          btn['action'] || 
+        (btn['keyval'] ||
+          btn['action'] ||
           (btn['strings'] || btn).indexOf(' ') >= 0
         ) ? btn : mappings[cursor++]));
       });
-      log(JSON.stringify(levels));
   },
 
   apply: function (_loadModel, it, args) {
