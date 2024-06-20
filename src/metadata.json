@@ -3,7 +3,7 @@
   "name": "Randomized OSK",
   "shell-version": ["40", "41", "42", "43", "44"],
   "url": "https://github.com/zcxfg/randomized-osk-gnome-ext",
-  "uuid": "randomized@zcxfg.dev",
+  "uuid": "randomizedosk@zcxfg.dev",
   "version": 0.5,
   "session-modes": ["user", "unlock-dialog", "gdm"]
 }
