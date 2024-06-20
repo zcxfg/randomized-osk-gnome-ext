@@ -3,6 +3,7 @@
 # Run this script to install extension system-wide. This will allow it to run on Gnome's login screen
 
 zip_filename="randomizedosk@zcxfg.dev.shell-extension.zip"
+target_dir='/usr/share/gnome-shell/extensions/randomizedosk@zcxfg.dev/'
 
 # Check if "randomizedosk@zcxfg.dev.shell-extension.zip" exists in the current directory
 if [ ! -f "$zip_filename" ]; then
@@ -11,7 +12,11 @@ if [ ! -f "$zip_filename" ]; then
 fi
 
 # Extract .zip into "/usr/share/gnome-shell/extensions/" directory
-sudo unzip -o "$zip_filename" -d /usr/share/gnome-shell/extensions/randomizedosk@zcxfg.dev/
+sudo unzip -o "$zip_filename" -d "$target_dir"
+sudo find "$target_dir" -type f -exec chmod 444 '{}' ';'
+sudo find "$target_dir" -type d -exec chmod 555 '{}' ';'
+sudo chown -R root:root "$target_dir"
+sudo chmod 755 "$target_dir"
 
 # Check if "user" file exists in "/etc/dconf/profile/" directory
 if [ ! -f /etc/dconf/profile/user ]; then
